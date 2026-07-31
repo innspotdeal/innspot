@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #1a1a1a;
+}
+
+/* ألوان براند إنسبوت: البرتقالي للأزرار الأساسية، الأزرق للعناوين والعناصر الثانوية */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand-orange: #f15a25;
+  --color-brand-orange-dark: #d84a1a;
+  --color-brand-blue: #0049af;
+  --color-brand-blue-dark: #003a8c;
+  --font-sans: var(--font-cairo);
+
+  /* ألوان خاصة بقسم "رحلات شركات" (هوية بصرية أكثر جرأة: كحلي وأصفر) */
+  --color-trip-navy: #183fad;
+  --color-trip-royal: #3d53c6;
+  --color-trip-navy-light: #4565bc;
+  --color-trip-navy-lighter: #abb9de;
+  --color-trip-yellow: #f1bf0a;
+  --color-trip-card: #e9ecf6;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}

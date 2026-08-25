@@ -1,15 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import CorporateProgramDetailView from "@/components/CorporateProgramDetailView";
-import { corporatePrograms } from "@/data/programs";
+import { getProgramById, listPrograms } from "@/lib/programs-repo";
 
-function findProgram(id: string) {
-  return corporatePrograms.find((program) => program.id === id);
-}
-
-export function generateStaticParams() {
-  return corporatePrograms.map((program) => ({ id: program.id }));
-}
+export const revalidate = 60;
 
 export async function generateMetadata({
   params,
@@ -17,7 +11,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const program = findProgram(id);
+  const program = await getProgramById(id);
 
   if (!program) {
     return { title: "غير موجود | إنسبوت" };
@@ -35,11 +29,11 @@ export default async function CorporateProgramDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const program = findProgram(id);
+  const [program, programs] = await Promise.all([getProgramById(id), listPrograms()]);
 
   if (!program) {
     notFound();
   }
 
-  return <CorporateProgramDetailView program={program} />;
+  return <CorporateProgramDetailView program={program} programs={programs} />;
 }

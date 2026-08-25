@@ -3,9 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import ProgramClashCard from "@/components/ProgramClashCard";
+import ProgramsSlider from "@/components/ProgramsSlider";
 import { clients } from "@/data/clients";
-import { corporatePrograms } from "@/data/programs";
+import type { CorporateProgram } from "@/data/programs";
 import { navLinks } from "@/data/site";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
@@ -28,7 +28,11 @@ function ArrowRightIcon({ className = "size-6" }: { className?: string }) {
   );
 }
 
-export default function CorporateTripsListView() {
+export default function CorporateTripsListView({
+  corporatePrograms,
+}: {
+  corporatePrograms: CorporateProgram[];
+}) {
   const { lang, toggleLang } = useLanguage();
   const t = translations[lang];
   const tp = t.corporateTripsPage;
@@ -185,7 +189,7 @@ export default function CorporateTripsListView() {
         />
       </header>
 
-      <main id="programs" className="mx-auto mt-20 max-w-5xl scroll-mt-8 overflow-hidden sm:px-9.5">
+      <main id="programs" className="mx-auto mt-20 max-w-5xl scroll-mt-8 sm:px-9.5">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:gap-10">
           <h2 dir={textDir} className="flex-1 text-5xl/14 font-extrabold md:text-6xl/18">
             {tp.programsHeading}
@@ -195,13 +199,9 @@ export default function CorporateTripsListView() {
           </div>
         </div>
 
-        <ul className="mt-10 grid grid-cols-1 gap-10 min-[480px]:grid-cols-2 md:grid-cols-3">
-          {corporatePrograms.map((program, index) => (
-            <li key={program.id} className="col-span-1">
-              <ProgramClashCard program={program} index={index} />
-            </li>
-          ))}
-        </ul>
+        <div className="mt-10">
+          <ProgramsSlider programs={corporatePrograms} />
+        </div>
       </main>
     </div>
   );

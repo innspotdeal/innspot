@@ -2,21 +2,19 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import AccommodationDetailView from "@/components/AccommodationDetailView";
 import HotelDetailView from "@/components/HotelDetailView";
-import { villas } from "@/data/accommodations";
-import { hotels } from "@/data/hotels";
+import { getVillaById } from "@/lib/villas-repo";
+import { getHotelById } from "@/lib/hotels-repo";
 
-function findItem(id: string) {
-  const villa = villas.find((item) => item.id === id);
+export const revalidate = 60;
+
+async function findItem(id: string) {
+  const villa = await getVillaById(id);
   if (villa) return { kind: "villa" as const, item: villa };
 
-  const hotel = hotels.find((item) => item.id === id);
+  const hotel = await getHotelById(id);
   if (hotel) return { kind: "hotel" as const, item: hotel };
 
   return null;
-}
-
-export function generateStaticParams() {
-  return [...villas, ...hotels].map((item) => ({ id: item.id }));
 }
 
 export async function generateMetadata({
@@ -25,7 +23,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const found = findItem(id);
+  const found = await findItem(id);
 
   if (!found) {
     return { title: "غير موجود | إنسبوت" };
@@ -43,7 +41,7 @@ export default async function AccommodationDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const found = findItem(id);
+  const found = await findItem(id);
 
   if (!found) {
     notFound();

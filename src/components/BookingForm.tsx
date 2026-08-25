@@ -1,15 +1,17 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { corporatePrograms } from "@/data/programs";
+import type { CorporateProgram } from "@/data/programs";
 import { ADDON_OPTIONS, type AddonKey } from "@/data/addons";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
 import ResultCard, { type PriceResult } from "@/components/ResultCard";
 
 export default function BookingForm({
+  programs,
   initialProgramId = "",
 }: {
+  programs: CorporateProgram[];
   initialProgramId?: string;
 }) {
   const { lang } = useLanguage();
@@ -88,7 +90,7 @@ export default function BookingForm({
             className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm focus:border-brand-blue focus:outline-none"
           >
             <option value="">{t.programPlaceholder}</option>
-            {corporatePrograms
+            {programs
               .filter((program) => !program.isCustom)
               .map((program) => (
                 <option key={program.id} value={program.id}>

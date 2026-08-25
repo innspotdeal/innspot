@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import HotelFullCard from "@/components/HotelFullCard";
-import { hotels } from "@/data/hotels";
+import type { Hotel } from "@/data/hotels";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
 
-export default function HotelsGridView() {
+export default function HotelsGridView({ hotels }: { hotels: Hotel[] }) {
   const { lang } = useLanguage();
   const t = translations[lang];
 

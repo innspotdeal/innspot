@@ -4,13 +4,21 @@ import AccommodationCard from "@/components/AccommodationCard";
 import HotelCard from "@/components/HotelCard";
 import ActivityCard from "@/components/ActivityCard";
 import ScrollRow from "@/components/ScrollRow";
-import { villas } from "@/data/accommodations";
-import { hotels } from "@/data/hotels";
-import { activities } from "@/data/activities";
+import type { Accommodation } from "@/data/accommodations";
+import type { Hotel } from "@/data/hotels";
+import type { Activity } from "@/data/activities";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
 
-export default function AccommodationListView() {
+export default function AccommodationListView({
+  villas,
+  hotels,
+  activities,
+}: {
+  villas: Accommodation[];
+  hotels: Hotel[];
+  activities: Activity[];
+}) {
   const { lang } = useLanguage();
   const t = translations[lang].accommodationPage;
 

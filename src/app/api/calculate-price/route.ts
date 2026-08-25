@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { calculatePrice, isValidAddonKey, MIN_PEOPLE } from "@/lib/pricing";
 import { ADDON_OPTIONS, type AddonKey } from "@/data/addons";
-import { corporatePrograms } from "@/data/programs";
+import { getProgramById } from "@/lib/programs-repo";
 
 type Lang = "ar" | "en";
 
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: t.selectProgram }, { status: 400 });
   }
 
-  const program = corporatePrograms.find((p) => p.id === programId);
+  const program = await getProgramById(programId);
   if (!program) {
     return NextResponse.json({ ok: false, error: t.programNotFound }, { status: 400 });
   }
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     (key): key is AddonKey => typeof key === "string" && isValidAddonKey(key)
   );
 
-  const result = calculatePrice({
+  const result = await calculatePrice({
     programId,
     people: peopleNumber,
     addons: validAddonKeys,

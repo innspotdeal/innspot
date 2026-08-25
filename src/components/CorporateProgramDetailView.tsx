@@ -9,7 +9,13 @@ import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
 import type { CorporateProgram } from "@/data/programs";
 
-export default function CorporateProgramDetailView({ program }: { program: CorporateProgram }) {
+export default function CorporateProgramDetailView({
+  program,
+  programs,
+}: {
+  program: CorporateProgram;
+  programs: CorporateProgram[];
+}) {
   const router = useRouter();
   const { lang } = useLanguage();
   const t = translations[lang];
@@ -90,7 +96,7 @@ export default function CorporateProgramDetailView({ program }: { program: Corpo
 
       {!program.isCustom && (
         <div id="booking" className="relative z-10 bg-white px-4 pt-8 sm:px-8">
-          <BookingForm initialProgramId={program.id} />
+          <BookingForm programs={programs} initialProgramId={program.id} />
         </div>
       )}
     </div>

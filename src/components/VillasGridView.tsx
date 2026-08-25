@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import AccommodationFullCard from "@/components/AccommodationFullCard";
-import { villas } from "@/data/accommodations";
+import type { Accommodation } from "@/data/accommodations";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
 
-export default function VillasGridView() {
+export default function VillasGridView({ villas }: { villas: Accommodation[] }) {
   const { lang } = useLanguage();
   const t = translations[lang];
 

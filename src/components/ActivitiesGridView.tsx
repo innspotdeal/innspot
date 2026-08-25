@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import ActivityFullCard from "@/components/ActivityFullCard";
-import { activities } from "@/data/activities";
+import type { Activity } from "@/data/activities";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
 
-export default function ActivitiesGridView() {
+export default function ActivitiesGridView({ activities }: { activities: Activity[] }) {
   const { lang } = useLanguage();
   const t = translations[lang];
 

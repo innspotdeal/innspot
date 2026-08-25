@@ -19,7 +19,7 @@ export const siteConfig = {
   // بيانات التواصل التي تظهر في الفوتر
   contact: {
     phone: "+20 106 184 0111",
-    email: "info@innspot-fayoum.com",
+    email: "info@innspot.com",
     address: "الفيوم، جمهورية مصر العربية",
   },
 

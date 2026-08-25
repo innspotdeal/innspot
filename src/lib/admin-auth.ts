@@ -16,24 +16,49 @@ function sign(value: string): string {
   return crypto.createHmac("sha256", getSecret()).update(value).digest("hex");
 }
 
+function safeEqual(a: string, b: string): boolean {
+  const aBuf = Buffer.from(a);
+  const bBuf = Buffer.from(b);
+  return aBuf.length === bBuf.length && crypto.timingSafeEqual(aBuf, bBuf);
+}
+
+// بيدعم أكتر من حساب أدمن مع بعض عن طريق متغير البيئة ADMIN_USERS
+// الصيغة: "user1:pass1,user2:pass2,user3:pass3"
+// (لسه بيدعم الصيغة القديمة ADMIN_USERNAME/ADMIN_PASSWORD لحساب واحد لو ADMIN_USERS مش موجود)
+function getAdminAccounts(): { username: string; password: string }[] {
+  const usersEnv = process.env.ADMIN_USERS;
+  if (usersEnv) {
+    return usersEnv
+      .split(",")
+      .map((pair) => pair.trim())
+      .filter(Boolean)
+      .map((pair) => {
+        const [username, ...rest] = pair.split(":");
+        return { username: username.trim(), password: rest.join(":").trim() };
+      })
+      .filter((acc) => acc.username && acc.password);
+  }
+
+  const singleUsername = process.env.ADMIN_USERNAME;
+  const singlePassword = process.env.ADMIN_PASSWORD;
+  if (singleUsername && singlePassword) {
+    return [{ username: singleUsername, password: singlePassword }];
+  }
+
+  return [];
+}
+
 export function checkAdminCredentials(username: string, password: string): boolean {
-  const expectedUsername = process.env.ADMIN_USERNAME ?? "";
-  const expectedPassword = process.env.ADMIN_PASSWORD ?? "";
-  if (!expectedUsername || !expectedPassword) return false;
+  const accounts = getAdminAccounts();
+  let matched = false;
 
-  const usernameBuf = Buffer.from(username);
-  const expectedUsernameBuf = Buffer.from(expectedUsername);
-  const passwordBuf = Buffer.from(password);
-  const expectedPasswordBuf = Buffer.from(expectedPassword);
+  for (const account of accounts) {
+    const usernameMatches = safeEqual(username, account.username);
+    const passwordMatches = safeEqual(password, account.password);
+    if (usernameMatches && passwordMatches) matched = true;
+  }
 
-  const usernameMatches =
-    usernameBuf.length === expectedUsernameBuf.length &&
-    crypto.timingSafeEqual(usernameBuf, expectedUsernameBuf);
-  const passwordMatches =
-    passwordBuf.length === expectedPasswordBuf.length &&
-    crypto.timingSafeEqual(passwordBuf, expectedPasswordBuf);
-
-  return usernameMatches && passwordMatches;
+  return matched;
 }
 
 export function createSessionToken(): { token: string; maxAge: number } {

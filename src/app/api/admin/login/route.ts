@@ -22,15 +22,16 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!checkAdminCredentials(username, password)) {
+  const account = checkAdminCredentials(username, password);
+  if (!account) {
     return NextResponse.json(
       { ok: false, error: "اسم المستخدم أو كلمة المرور غير صحيحة" },
       { status: 401 }
     );
   }
 
-  const { token, maxAge } = createSessionToken();
-  const response = NextResponse.json({ ok: true });
+  const { token, maxAge } = createSessionToken(account);
+  const response = NextResponse.json({ ok: true, role: account.role });
   response.cookies.set(ADMIN_SESSION_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

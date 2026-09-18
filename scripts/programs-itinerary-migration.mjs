@@ -24,7 +24,8 @@ async function main() {
     ALTER TABLE corporate_programs
       ADD COLUMN IF NOT EXISTS itinerary JSONB NOT NULL DEFAULT '[]',
       ADD COLUMN IF NOT EXISTS start_time TEXT,
-      ADD COLUMN IF NOT EXISTS end_time TEXT;
+      ADD COLUMN IF NOT EXISTS end_time TEXT,
+      ADD COLUMN IF NOT EXISTS is_builder BOOLEAN NOT NULL DEFAULT false;
   `);
 
   for (const p of corporatePrograms) {
@@ -36,7 +37,7 @@ async function main() {
         `UPDATE corporate_programs
          SET name=$2, name_en=$3, description=$4, description_en=$5,
              itinerary=$6, duration=$7, duration_en=$8, includes=$9, includes_en=$10,
-             is_custom=$11, highlights='{}', highlights_en='{}'
+             is_custom=$11, is_builder=$12, highlights='{}', highlights_en='{}'
          WHERE id=$1`,
         [
           p.id,
@@ -50,6 +51,7 @@ async function main() {
           p.includes,
           p.includesEn,
           p.isCustom,
+          p.isBuilder,
         ]
       );
       console.log(`تم تحديث: ${p.id}`);
@@ -58,8 +60,8 @@ async function main() {
         `INSERT INTO corporate_programs
           (id, name, name_en, description, description_en, highlights, highlights_en,
            duration, duration_en, includes, includes_en, images, is_custom,
-           itinerary, start_time, end_time, sort_order)
-         VALUES ($1,$2,$3,$4,$5,'{}','{}',$6,$7,$8,$9,$10,$11,$12,$13,$14,
+           itinerary, start_time, end_time, is_builder, sort_order)
+         VALUES ($1,$2,$3,$4,$5,'{}','{}',$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,
            (SELECT COALESCE(MAX(sort_order),0)+1 FROM corporate_programs))`,
         [
           p.id,
@@ -76,6 +78,7 @@ async function main() {
           JSON.stringify(p.itinerary),
           p.startTime || null,
           p.endTime || null,
+          p.isBuilder,
         ]
       );
       console.log(`تمت إضافة: ${p.id}`);

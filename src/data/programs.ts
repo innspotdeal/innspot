@@ -262,6 +262,26 @@ export const corporatePrograms: CorporateProgram[] = [
     isBuilder: false,
   },
   {
+    id: "custom-program",
+    name: "برنامج كاستم",
+    nameEn: "Custom Program",
+    description:
+      "ركّب رحلتك بنفسك: اختار المبيت أو الداي يوز، مكان الفطار وأصنافه، تفاصيل رحلة السفاري، مكان الغداء، والإضافات — والسعر بيتحدّث معاك خطوة بخطوة.",
+    descriptionEn:
+      "Build your own trip: choose an overnight stay or a day use, the breakfast spot and its dishes, your safari details, the lunch spot, and the extras — with the price updating as you go.",
+    itinerary: [],
+    startTime: "",
+    endTime: "",
+    duration: "حسب اختيارك",
+    durationEn: "Based on your choices",
+    includes: [],
+    includesEn: [],
+    images: ["/images/safari-dunes.jpg", "/images/lake-dramatic.jpg"],
+    isCustom: true,
+    // صفحته مكوّن رحلة تفاعلي مش مخطط عادي
+    isBuilder: true,
+  },
+  {
     id: "elite-program",
     name: "برنامج إليت (كستميز)",
     nameEn: "Elite Program (Customize)",

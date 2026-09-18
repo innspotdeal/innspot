@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { useLanguage } from "@/lib/language-context";
 import type { CustomTripOption } from "@/data/custom-trip";
@@ -179,11 +180,13 @@ export default function CustomTripBuilder({ options }: Props) {
                   key={o.id}
                   selected={hotelId === o.id}
                   onClick={() => setHotelId(hotelId === o.id ? "" : o.id)}
+                  option={o}
+                  detailsLabel={t("تفاصيل", "Details")}
+                  isEn={isEn}
                   title={label(o)}
                   meta={[o.tier, o.includesBreakfast ? t("شامل فطار", "breakfast included") : ""]
                     .filter(Boolean)
                     .join(" · ")}
-                  price={`${fmt(o.price)} ${t("ج/فرد/ليلة", "EGP/person/night")}`}
                 />
               ))}
             </div>
@@ -204,6 +207,9 @@ export default function CustomTripBuilder({ options }: Props) {
             {(byKind.breakfast_place ?? []).map((o) => (
               <OptionRow
                 key={o.id}
+                option={o}
+                detailsLabel={t("تفاصيل", "Details")}
+                isEn={isEn}
                 selected={breakfastPlaceId === o.id}
                 onClick={() => {
                   setBreakfastPlaceId(breakfastPlaceId === o.id ? "" : o.id);
@@ -211,7 +217,6 @@ export default function CustomTripBuilder({ options }: Props) {
                 }}
                 title={label(o)}
                 meta={o.tier}
-                price={o.price > 0 ? `${fmt(o.price)} ${t("ج/فرد", "EGP/person")}` : ""}
               />
             ))}
           </div>
@@ -225,8 +230,10 @@ export default function CustomTripBuilder({ options }: Props) {
                     key={o.id}
                     selected={breakfastItemIds.includes(o.id)}
                     onClick={() => toggle(breakfastItemIds, setBreakfastItemIds, o.id)}
-                    title={label(o)}
-                    price={`${fmt(o.price)} ${t("ج/فرد", "EGP/person")}`}
+                    option={o}
+                  detailsLabel={t("تفاصيل", "Details")}
+                  isEn={isEn}
+                  title={label(o)}
                   />
                 ))}
               </div>
@@ -245,9 +252,11 @@ export default function CustomTripBuilder({ options }: Props) {
                   key={o.id}
                   selected={carId === o.id}
                   onClick={() => setCarId(carId === o.id ? "" : o.id)}
+                  option={o}
+                  detailsLabel={t("تفاصيل", "Details")}
+                  isEn={isEn}
                   title={label(o)}
                   meta={t(`${cars} عربية للعدد ده`, `${cars} vehicle(s) for this group`)}
-                  price={`${fmt(o.price)} ${t("ج/عربية", "EGP/vehicle")}`}
                 />
               );
             })}
@@ -260,6 +269,9 @@ export default function CustomTripBuilder({ options }: Props) {
             {(byKind.lunch_place ?? []).map((o) => (
               <OptionRow
                 key={o.id}
+                option={o}
+                detailsLabel={t("تفاصيل", "Details")}
+                isEn={isEn}
                 selected={lunchPlaceId === o.id}
                 onClick={() => {
                   setLunchPlaceId(lunchPlaceId === o.id ? "" : o.id);
@@ -267,7 +279,6 @@ export default function CustomTripBuilder({ options }: Props) {
                 }}
                 title={label(o)}
                 meta={o.tier}
-                price={o.price > 0 ? `${fmt(o.price)} ${t("ج/فرد", "EGP/person")}` : ""}
               />
             ))}
           </div>
@@ -281,8 +292,10 @@ export default function CustomTripBuilder({ options }: Props) {
                     key={o.id}
                     selected={lunchItemIds.includes(o.id)}
                     onClick={() => toggle(lunchItemIds, setLunchItemIds, o.id)}
-                    title={label(o)}
-                    price={`${fmt(o.price)} ${t("ج/فرد", "EGP/person")}`}
+                    option={o}
+                  detailsLabel={t("تفاصيل", "Details")}
+                  isEn={isEn}
+                  title={label(o)}
                   />
                 ))}
               </div>
@@ -296,14 +309,12 @@ export default function CustomTripBuilder({ options }: Props) {
             {(byKind.addon ?? []).map((o) => (
               <OptionRow
                 key={o.id}
+                option={o}
+                detailsLabel={t("تفاصيل", "Details")}
+                isEn={isEn}
                 selected={addonIds.includes(o.id)}
                 onClick={() => toggle(addonIds, setAddonIds, o.id)}
                 title={label(o)}
-                price={
-                  o.priceUnit === "flat"
-                    ? `${fmt(o.price)} ${t("ج", "EGP")}`
-                    : `${fmt(o.price)} ${t("ج/فرد", "EGP/person")}`
-                }
               />
             ))}
           </div>
@@ -415,29 +426,86 @@ function Choice({
 function OptionRow({
   selected,
   onClick,
+  option,
   title,
   meta,
-  price,
+  detailsLabel,
+  isEn,
 }: {
   selected: boolean;
   onClick: () => void;
+  option?: CustomTripOption;
   title: string;
   meta?: string;
-  price?: string;
+  detailsLabel: string;
+  isEn: boolean;
 }) {
+  const [open, setOpen] = useState(false);
+  const description = option ? (isEn ? option.descriptionEn || option.description : option.description) : "";
+  const images = option?.images ?? [];
+  const rating = option?.rating ?? 0;
+  const hasDetails = Boolean(description || images.length > 0 || rating > 0);
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex w-full items-center justify-between gap-3 rounded-xl border px-4 py-3 text-start transition ${
-        selected ? "border-brand-orange bg-orange-50" : "border-neutral-200 hover:border-brand-blue"
+    <div
+      className={`rounded-xl border transition ${
+        selected ? "border-brand-orange bg-orange-50" : "border-neutral-200"
       }`}
     >
-      <span className="min-w-0">
-        <span className="block text-sm font-bold text-neutral-800">{title}</span>
-        {meta && <span className="block text-xs text-neutral-500">{meta}</span>}
+      <div className="flex items-center gap-2 px-2">
+        <button
+          type="button"
+          onClick={onClick}
+          className="flex min-w-0 flex-1 items-center justify-between gap-3 py-3 text-start"
+        >
+          <span className="min-w-0">
+            <span className="block text-sm font-bold text-neutral-800">{title}</span>
+            {meta && <span className="block text-xs text-neutral-500">{meta}</span>}
+            {rating > 0 && <Stars rating={rating} />}
+          </span>
+        </button>
+
+        {hasDetails && (
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="shrink-0 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-bold text-neutral-600 transition hover:border-brand-blue hover:text-brand-blue"
+          >
+            {detailsLabel}
+          </button>
+        )}
+      </div>
+
+      {open && hasDetails && (
+        <div className="border-t border-black/5 px-4 py-3">
+          {images.length > 0 && (
+            <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
+              {images.map((src, i) => (
+                <div
+                  key={`${src}-${i}`}
+                  className="relative h-28 w-40 shrink-0 overflow-hidden rounded-lg bg-neutral-100"
+                >
+                  <Image src={src} alt={title} fill sizes="160px" className="object-cover" unoptimized />
+                </div>
+              ))}
+            </div>
+          )}
+          {description && <p className="text-sm leading-relaxed text-neutral-600">{description}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Stars({ rating }: { rating: number }) {
+  const rounded = Math.round(rating * 2) / 2;
+  return (
+    <span className="mt-1 flex items-center gap-1" dir="ltr">
+      <span className="text-xs font-bold text-amber-500">
+        {"\u2605".repeat(Math.floor(rounded))}
+        {rounded % 1 ? "\u00bd" : ""}
       </span>
-      {price && <span className="shrink-0 text-sm font-bold text-brand-orange">{price}</span>}
-    </button>
+      <span className="text-[11px] text-neutral-400">{rating.toFixed(1)}</span>
+    </span>
   );
 }

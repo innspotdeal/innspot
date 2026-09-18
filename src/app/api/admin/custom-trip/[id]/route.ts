@@ -13,6 +13,9 @@ function parseUpdateInput(body: unknown): OptionUpdateInput {
   if (typeof b.parentId === "string") update.parentId = b.parentId.trim();
   if (typeof b.tier === "string") update.tier = b.tier.trim();
   if (typeof b.image === "string") update.image = b.image.trim();
+  if (Array.isArray(b.images))
+    update.images = b.images.filter((v): v is string => typeof v === "string");
+  if (b.rating !== undefined) update.rating = Math.min(5, Math.max(0, Number(b.rating) || 0));
   if (b.price !== undefined) update.price = Number(b.price) || 0;
   if (b.capacity !== undefined) update.capacity = Number(b.capacity) || 0;
   if (b.includesBreakfast !== undefined) update.includesBreakfast = Boolean(b.includesBreakfast);

@@ -45,6 +45,8 @@ function parseOptionInput(
       tier: typeof b.tier === "string" ? b.tier.trim() : "",
       includesBreakfast: Boolean(b.includesBreakfast),
       image: typeof b.image === "string" ? b.image.trim() : "",
+      images: Array.isArray(b.images) ? b.images.filter((v): v is string => typeof v === "string") : [],
+      rating: Math.min(5, Math.max(0, Number(b.rating) || 0)),
       active: b.active === undefined ? true : Boolean(b.active),
     },
   };

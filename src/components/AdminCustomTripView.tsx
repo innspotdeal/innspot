@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useMemo, useState } from "react";
+import ImageUploader from "@/components/ImageUploader";
 import {
   KIND_LABELS,
   OPTION_KINDS,
@@ -22,6 +23,10 @@ type FormState = {
   parentId: string;
   name: string;
   nameEn: string;
+  description: string;
+  descriptionEn: string;
+  images: string[];
+  rating: string;
   price: string;
   priceUnit: PriceUnit;
   capacity: string;
@@ -35,6 +40,10 @@ const emptyForm: FormState = {
   parentId: "",
   name: "",
   nameEn: "",
+  description: "",
+  descriptionEn: "",
+  images: [],
+  rating: "0",
   price: "0",
   priceUnit: "per_person",
   capacity: "",
@@ -49,6 +58,10 @@ function optionToForm(o: CustomTripOption): FormState {
     parentId: o.parentId,
     name: o.name,
     nameEn: o.nameEn,
+    description: o.description,
+    descriptionEn: o.descriptionEn,
+    images: o.images,
+    rating: String(o.rating),
     price: String(o.price),
     priceUnit: o.priceUnit,
     capacity: o.capacity ? String(o.capacity) : "",
@@ -63,6 +76,7 @@ function toPayload(f: FormState) {
     ...f,
     price: Number(f.price) || 0,
     capacity: Number(f.capacity) || 0,
+    rating: Number(f.rating) || 0,
   };
 }
 
@@ -399,6 +413,38 @@ function OptionFields({
       {isHotel && (
         <Field label="المستوى (مثال: فاخر)" value={form.tier} onChange={(v) => onChange("tier", v)} />
       )}
+
+      <Field
+        label="التقييم (من 5)"
+        value={form.rating}
+        onChange={(v) => onChange("rating", v)}
+        type="number"
+      />
+
+      <div className="sm:col-span-2">
+        <Label>الوصف (عربي) — بيظهر للعميل لما يدوس &quot;تفاصيل&quot;</Label>
+        <textarea
+          value={form.description}
+          onChange={(e) => onChange("description", e.target.value)}
+          rows={3}
+          className="mt-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-brand-blue"
+        />
+      </div>
+
+      <div className="sm:col-span-2">
+        <Label>Description (English)</Label>
+        <textarea
+          value={form.descriptionEn}
+          onChange={(e) => onChange("descriptionEn", e.target.value)}
+          rows={3}
+          className="mt-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-brand-blue"
+        />
+      </div>
+
+      <div className="sm:col-span-2">
+        <Label>الصور</Label>
+        <ImageUploader images={form.images} onChange={(imgs) => onChange("images", imgs)} />
+      </div>
 
       <div className="flex flex-wrap items-center gap-6 sm:col-span-2">
         {isHotel && (

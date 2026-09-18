@@ -57,6 +57,10 @@ export type CustomTripOption = {
   // للفنادق: السعر شامل فطار ولا لأ
   includesBreakfast: boolean;
   image: string;
+  // صور المكان اللي العميل يشوفها قبل ما يختار
+  images: string[];
+  // تقييم من 5 (0 = مفيش تقييم)
+  rating: number;
   // متاح للاختيار ولا مخفي مؤقتًا
   active: boolean;
   sortOrder: number;

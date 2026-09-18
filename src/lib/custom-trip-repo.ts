@@ -16,6 +16,8 @@ type OptionRow = {
   tier: string;
   includes_breakfast: boolean;
   image: string;
+  images: string[] | null;
+  rating: number;
   active: boolean;
   sort_order: number;
 };
@@ -35,6 +37,8 @@ function rowToOption(row: OptionRow): CustomTripOption {
     tier: row.tier,
     includesBreakfast: row.includes_breakfast,
     image: row.image,
+    images: row.images ?? [],
+    rating: Number(row.rating) || 0,
     active: row.active,
     sortOrder: row.sort_order,
   };
@@ -62,8 +66,8 @@ export async function createOption(input: OptionInput): Promise<CustomTripOption
   const result = await pool.query<OptionRow>(
     `INSERT INTO custom_trip_options
       (id, kind, parent_id, name, name_en, description, description_en,
-       price, price_unit, capacity, tier, includes_breakfast, image, active, sort_order)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,
+       price, price_unit, capacity, tier, includes_breakfast, image, images, rating, active, sort_order)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,
        (SELECT COALESCE(MAX(sort_order),0)+1 FROM custom_trip_options WHERE kind = $2))
      RETURNING *`,
     [
@@ -80,6 +84,8 @@ export async function createOption(input: OptionInput): Promise<CustomTripOption
       input.tier,
       input.includesBreakfast,
       input.image,
+      input.images,
+      input.rating,
       input.active,
     ]
   );
@@ -105,6 +111,8 @@ export async function updateOption(
     tier: "tier",
     includesBreakfast: "includes_breakfast",
     image: "image",
+    images: "images",
+    rating: "rating",
     active: "active",
   };
 

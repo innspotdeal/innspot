@@ -1,21 +1,6 @@
 import { NextResponse } from "next/server";
 import { deleteProgram, updateProgram, type ProgramUpdateInput } from "@/lib/programs-repo";
-
-function toList(value: unknown): string[] {
-  return typeof value === "string"
-    ? value.split("\n").map((s) => s.trim()).filter(Boolean)
-    : Array.isArray(value)
-      ? value.filter((v): v is string => typeof v === "string")
-      : [];
-}
-
-function toImageList(value: unknown): string[] {
-  return typeof value === "string"
-    ? value.split(",").map((s) => s.trim()).filter(Boolean)
-    : Array.isArray(value)
-      ? value.filter((v): v is string => typeof v === "string")
-      : [];
-}
+import { toImageList, toItinerary, toList } from "@/lib/program-input";
 
 function parseUpdateInput(body: unknown): ProgramUpdateInput {
   const b = (body ?? {}) as Record<string, unknown>;
@@ -25,8 +10,9 @@ function parseUpdateInput(body: unknown): ProgramUpdateInput {
   if (typeof b.nameEn === "string") update.nameEn = b.nameEn.trim();
   if (typeof b.description === "string") update.description = b.description.trim();
   if (typeof b.descriptionEn === "string") update.descriptionEn = b.descriptionEn.trim();
-  if (b.highlights !== undefined) update.highlights = toList(b.highlights);
-  if (b.highlightsEn !== undefined) update.highlightsEn = toList(b.highlightsEn);
+  if (b.itinerary !== undefined) update.itinerary = toItinerary(b.itinerary, b.itineraryEn);
+  if (typeof b.startTime === "string") update.startTime = b.startTime.trim();
+  if (typeof b.endTime === "string") update.endTime = b.endTime.trim();
   if (typeof b.duration === "string") update.duration = b.duration.trim();
   if (typeof b.durationEn === "string") update.durationEn = b.durationEn.trim();
   if (b.includes !== undefined) update.includes = toList(b.includes);

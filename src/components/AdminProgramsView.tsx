@@ -4,14 +4,17 @@ import { Fragment, useState } from "react";
 import Link from "next/link";
 import type { CorporateProgram } from "@/data/programs";
 import ImageUploader from "@/components/ImageUploader";
+import { itineraryToText } from "@/lib/program-input";
 
 type NewProgramForm = {
   name: string;
   nameEn: string;
   description: string;
   descriptionEn: string;
-  highlights: string;
-  highlightsEn: string;
+  itinerary: string;
+  itineraryEn: string;
+  startTime: string;
+  endTime: string;
   duration: string;
   durationEn: string;
   includes: string;
@@ -24,14 +27,50 @@ const emptyForm: NewProgramForm = {
   nameEn: "",
   description: "",
   descriptionEn: "",
-  highlights: "",
-  highlightsEn: "",
+  itinerary: "",
+  itineraryEn: "",
+  startTime: "",
+  endTime: "",
   duration: "",
   durationEn: "",
   includes: "",
   includesEn: "",
   isCustom: false,
 };
+
+type EditProgramForm = {
+  name: string;
+  nameEn: string;
+  description: string;
+  descriptionEn: string;
+  itinerary: string;
+  itineraryEn: string;
+  startTime: string;
+  endTime: string;
+  duration: string;
+  durationEn: string;
+  includes: string;
+  includesEn: string;
+  isCustom: boolean;
+};
+
+function programToEditForm(p: CorporateProgram): EditProgramForm {
+  return {
+    name: p.name,
+    nameEn: p.nameEn,
+    description: p.description,
+    descriptionEn: p.descriptionEn,
+    itinerary: itineraryToText(p.itinerary, "ar"),
+    itineraryEn: itineraryToText(p.itinerary, "en"),
+    startTime: p.startTime,
+    endTime: p.endTime,
+    duration: p.duration,
+    durationEn: p.durationEn,
+    includes: p.includes.join("\n"),
+    includesEn: p.includesEn.join("\n"),
+    isCustom: p.isCustom,
+  };
+}
 
 export default function AdminProgramsView({ initialPrograms }: { initialPrograms: CorporateProgram[] }) {
   const [programs, setPrograms] = useState(initialPrograms);
@@ -43,11 +82,15 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
   const [newImages, setNewImages] = useState<string[]>([]);
   const [adding, setAdding] = useState(false);
 
-  const [expandedImagesId, setExpandedImagesId] = useState<string | null>(null);
   const [editImages, setEditImages] = useState<Record<string, string[]>>(() =>
     Object.fromEntries(initialPrograms.map((p) => [p.id, p.images]))
   );
-  const [savingImagesId, setSavingImagesId] = useState<string | null>(null);
+
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editForms, setEditForms] = useState<Record<string, EditProgramForm>>(() =>
+    Object.fromEntries(initialPrograms.map((p) => [p.id, programToEditForm(p)]))
+  );
+  const [savingEditId, setSavingEditId] = useState<string | null>(null);
 
   function flash(msg: string, isError = false) {
     if (isError) setError(msg);
@@ -58,25 +101,29 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
     }, 3000);
   }
 
-  async function handleSaveImages(id: string) {
-    setSavingImagesId(id);
+  async function handleSaveEdit(id: string) {
+    const f = editForms[id];
+    if (!f) return;
+    setSavingEditId(id);
     try {
       const res = await fetch(`/api/admin/programs/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ images: editImages[id] ?? [] }),
+        body: JSON.stringify({ ...f, images: editImages[id] ?? [] }),
       });
       const data = await res.json();
       if (!data.ok) {
         flash(data.error || "حدث خطأ", true);
       } else {
         setPrograms((prev) => prev.map((p) => (p.id === id ? data.program : p)));
-        flash("تم تحديث الصور");
+        setEditForms((prev) => ({ ...prev, [id]: programToEditForm(data.program) }));
+        setEditImages((prev) => ({ ...prev, [id]: data.program.images }));
+        flash("تم حفظ التعديلات");
       }
     } catch {
       flash("تعذر الاتصال بالسيرفر", true);
     } finally {
-      setSavingImagesId(null);
+      setSavingEditId(null);
     }
   }
 
@@ -116,6 +163,7 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
       }
       setPrograms((prev) => [...prev, data.program]);
       setEditImages((prev) => ({ ...prev, [data.program.id]: data.program.images }));
+      setEditForms((prev) => ({ ...prev, [data.program.id]: programToEditForm(data.program) }));
       setForm(emptyForm);
       setNewImages([]);
       setShowAddForm(false);
@@ -125,6 +173,10 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
     } finally {
       setAdding(false);
     }
+  }
+
+  function updateEdit(id: string, key: keyof EditProgramForm, value: string) {
+    setEditForms((prev) => ({ ...prev, [id]: { ...prev[id], [key]: value } }));
   }
 
   return (
@@ -166,15 +218,25 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
           <Field label="مدة البرنامج (عربي)" value={form.duration} onChange={(v) => setForm({ ...form, duration: v })} />
           <Field label="Duration (English)" value={form.durationEn} onChange={(v) => setForm({ ...form, durationEn: v })} />
           <Field
-            label="أهم النقاط (سطر لكل نقطة، عربي)"
-            value={form.highlights}
-            onChange={(v) => setForm({ ...form, highlights: v })}
+            label="وقت التحرك (24 ساعة، مثال 07:00)"
+            value={form.startTime}
+            onChange={(v) => setForm({ ...form, startTime: v })}
+          />
+          <Field
+            label="وقت العودة (24 ساعة، مثال 21:00)"
+            value={form.endTime}
+            onChange={(v) => setForm({ ...form, endTime: v })}
+          />
+          <Field
+            label="مخطط الرحلة (سطر لكل خطوة — التفصيل بعد علامة |)"
+            value={form.itinerary}
+            onChange={(v) => setForm({ ...form, itinerary: v })}
             textarea
           />
           <Field
-            label="Highlights (one per line, English)"
-            value={form.highlightsEn}
-            onChange={(v) => setForm({ ...form, highlightsEn: v })}
+            label="Itinerary (one step per line — detail after |)"
+            value={form.itineraryEn}
+            onChange={(v) => setForm({ ...form, itineraryEn: v })}
             textarea
           />
           <Field
@@ -234,10 +296,10 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-2">
                     <button
-                      onClick={() => setExpandedImagesId((prev) => (prev === program.id ? null : program.id))}
+                      onClick={() => setExpandedId((prev) => (prev === program.id ? null : program.id))}
                       className="rounded-lg border border-black/10 px-3 py-1.5 text-xs font-bold text-neutral-700 transition hover:bg-neutral-50"
                     >
-                      {expandedImagesId === program.id ? "إخفاء الصور" : "الصور"}
+                      {expandedId === program.id ? "إخفاء التعديل" : "تعديل"}
                     </button>
                     <button
                       onClick={() => handleDelete(program.id, program.name)}
@@ -249,20 +311,106 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
                   </div>
                 </td>
               </tr>
-              {expandedImagesId === program.id && (
+              {expandedId === program.id && (
                 <tr className="border-t border-black/5 bg-neutral-50">
-                  <td colSpan={4} className="px-4 py-4">
-                    <p className="mb-2 text-sm font-semibold text-neutral-700">صور {program.name}</p>
-                    <ImageUploader
-                      images={editImages[program.id] ?? []}
-                      onChange={(imgs) => setEditImages((prev) => ({ ...prev, [program.id]: imgs }))}
-                    />
+                  <td colSpan={4} className="px-4 py-5">
+                    <p className="mb-3 text-sm font-bold text-neutral-800">تعديل {program.name}</p>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <EditField
+                        label="اسم البرنامج (عربي)"
+                        value={editForms[program.id]?.name ?? ""}
+                        onChange={(v) => updateEdit(program.id, "name", v)}
+                      />
+                      <EditField
+                        label="Program name (English)"
+                        value={editForms[program.id]?.nameEn ?? ""}
+                        onChange={(v) => updateEdit(program.id, "nameEn", v)}
+                      />
+                      <EditField
+                        label="الوصف (عربي)"
+                        value={editForms[program.id]?.description ?? ""}
+                        onChange={(v) => updateEdit(program.id, "description", v)}
+                        textarea
+                      />
+                      <EditField
+                        label="Description (English)"
+                        value={editForms[program.id]?.descriptionEn ?? ""}
+                        onChange={(v) => updateEdit(program.id, "descriptionEn", v)}
+                        textarea
+                      />
+                      <EditField
+                        label="المدة (عربي)"
+                        value={editForms[program.id]?.duration ?? ""}
+                        onChange={(v) => updateEdit(program.id, "duration", v)}
+                      />
+                      <EditField
+                        label="Duration (English)"
+                        value={editForms[program.id]?.durationEn ?? ""}
+                        onChange={(v) => updateEdit(program.id, "durationEn", v)}
+                      />
+                      <EditField
+                        label="وقت التحرك (24 ساعة، مثال 07:00)"
+                        value={editForms[program.id]?.startTime ?? ""}
+                        onChange={(v) => updateEdit(program.id, "startTime", v)}
+                      />
+                      <EditField
+                        label="وقت العودة (24 ساعة، مثال 21:00)"
+                        value={editForms[program.id]?.endTime ?? ""}
+                        onChange={(v) => updateEdit(program.id, "endTime", v)}
+                      />
+                      <EditField
+                        label="مخطط الرحلة (سطر لكل خطوة — التفصيل بعد علامة |)"
+                        value={editForms[program.id]?.itinerary ?? ""}
+                        onChange={(v) => updateEdit(program.id, "itinerary", v)}
+                        textarea
+                        rows={10}
+                      />
+                      <EditField
+                        label="Itinerary (one step per line — detail after |)"
+                        value={editForms[program.id]?.itineraryEn ?? ""}
+                        onChange={(v) => updateEdit(program.id, "itineraryEn", v)}
+                        textarea
+                        rows={10}
+                      />
+                      <EditField
+                        label="يشمل السعر (سطر لكل عنصر، عربي)"
+                        value={editForms[program.id]?.includes ?? ""}
+                        onChange={(v) => updateEdit(program.id, "includes", v)}
+                        textarea
+                      />
+                      <EditField
+                        label="Includes (one per line, English)"
+                        value={editForms[program.id]?.includesEn ?? ""}
+                        onChange={(v) => updateEdit(program.id, "includesEn", v)}
+                        textarea
+                      />
+                      <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
+                        <input
+                          type="checkbox"
+                          checked={editForms[program.id]?.isCustom ?? false}
+                          onChange={(e) =>
+                            setEditForms((prev) => ({
+                              ...prev,
+                              [program.id]: { ...prev[program.id], isCustom: e.target.checked },
+                            }))
+                          }
+                        />
+                        برنامج مخصّص (سعر بالطلب — من غير حاسبة سعر)
+                      </label>
+                      <div className="sm:col-span-2">
+                        <label className="mb-1 block text-sm font-semibold text-neutral-700">الصور</label>
+                        <ImageUploader
+                          images={editImages[program.id] ?? []}
+                          onChange={(imgs) => setEditImages((prev) => ({ ...prev, [program.id]: imgs }))}
+                        />
+                      </div>
+                    </div>
                     <button
-                      onClick={() => handleSaveImages(program.id)}
-                      disabled={savingImagesId === program.id}
-                      className="mt-3 rounded-lg bg-brand-blue px-4 py-1.5 text-xs font-bold text-white transition hover:bg-brand-blue/90 disabled:opacity-60"
+                      onClick={() => handleSaveEdit(program.id)}
+                      disabled={savingEditId === program.id}
+                      className="mt-4 rounded-lg bg-brand-blue px-5 py-2 text-sm font-bold text-white transition hover:bg-brand-blue/90 disabled:opacity-60"
                     >
-                      {savingImagesId === program.id ? "جاري الحفظ..." : "حفظ الصور"}
+                      {savingEditId === program.id ? "جاري الحفظ..." : "حفظ التعديلات"}
                     </button>
                   </td>
                 </tr>
@@ -313,6 +461,41 @@ function Field({
           onChange={(e) => onChange(e.target.value)}
           className="mt-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-brand-blue"
           required={required}
+        />
+      )}
+    </div>
+  );
+}
+
+function EditField({
+  label,
+  value,
+  onChange,
+  textarea = false,
+  rows = 3,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  textarea?: boolean;
+  rows?: number;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-neutral-700">{label}</label>
+      {textarea ? (
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-brand-blue"
+          rows={rows}
+        />
+      ) : (
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-brand-blue"
         />
       )}
     </div>

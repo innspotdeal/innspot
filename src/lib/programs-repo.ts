@@ -1,6 +1,6 @@
 import "server-only";
 import { pool } from "@/lib/db";
-import type { CorporateProgram } from "@/data/programs";
+import type { CorporateProgram, ItineraryStep } from "@/data/programs";
 
 type ProgramRow = {
   id: string;
@@ -8,6 +8,9 @@ type ProgramRow = {
   name_en: string;
   description: string;
   description_en: string;
+  itinerary: ItineraryStep[] | null;
+  start_time: string | null;
+  end_time: string | null;
   highlights: string[];
   highlights_en: string[];
   duration: string;
@@ -25,8 +28,9 @@ function rowToProgram(row: ProgramRow): CorporateProgram {
     nameEn: row.name_en,
     description: row.description,
     descriptionEn: row.description_en,
-    highlights: row.highlights ?? [],
-    highlightsEn: row.highlights_en ?? [],
+    itinerary: row.itinerary ?? [],
+    startTime: row.start_time ?? "",
+    endTime: row.end_time ?? "",
     duration: row.duration,
     durationEn: row.duration_en,
     includes: row.includes ?? [],
@@ -57,8 +61,9 @@ export type ProgramInput = {
   nameEn: string;
   description: string;
   descriptionEn: string;
-  highlights: string[];
-  highlightsEn: string[];
+  itinerary: ItineraryStep[];
+  startTime: string;
+  endTime: string;
   duration: string;
   durationEn: string;
   includes: string[];
@@ -70,8 +75,8 @@ export type ProgramInput = {
 export async function createProgram(input: ProgramInput): Promise<CorporateProgram> {
   const result = await pool.query<ProgramRow>(
     `INSERT INTO corporate_programs
-      (id, name, name_en, description, description_en, highlights, highlights_en, duration, duration_en, includes, includes_en, images, is_custom, sort_order)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,
+      (id, name, name_en, description, description_en, itinerary, start_time, end_time, duration, duration_en, includes, includes_en, images, is_custom, sort_order)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,
        (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM corporate_programs))
      RETURNING *`,
     [
@@ -80,8 +85,9 @@ export async function createProgram(input: ProgramInput): Promise<CorporateProgr
       input.nameEn,
       input.description,
       input.descriptionEn,
-      input.highlights,
-      input.highlightsEn,
+      JSON.stringify(input.itinerary),
+      input.startTime || null,
+      input.endTime || null,
       input.duration,
       input.durationEn,
       input.includes,
@@ -104,8 +110,9 @@ export async function updateProgram(
     nameEn: "name_en",
     description: "description",
     descriptionEn: "description_en",
-    highlights: "highlights",
-    highlightsEn: "highlights_en",
+    itinerary: "itinerary",
+    startTime: "start_time",
+    endTime: "end_time",
     duration: "duration",
     durationEn: "duration_en",
     includes: "includes",
@@ -122,7 +129,8 @@ export async function updateProgram(
     const value = (input as Record<string, unknown>)[key];
     if (value !== undefined) {
       sets.push(`${column} = $${i}`);
-      values.push(value);
+      // itinerary عمود jsonb — لازم يتبعت كنص JSON
+      values.push(key === "itinerary" ? JSON.stringify(value) : value);
       i++;
     }
   }

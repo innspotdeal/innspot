@@ -23,8 +23,19 @@ export default function CorporateProgramDetailView({
   const name = lang === "en" ? program.nameEn : program.name;
   const description = lang === "en" ? program.descriptionEn : program.description;
   const duration = lang === "en" ? program.durationEn : program.duration;
-  const highlights = lang === "en" ? program.highlightsEn : program.highlights;
   const includes = lang === "en" ? program.includesEn : program.includes;
+
+  // "07:00" → "7:00 ص" بالعربي / "7:00 AM" بالإنجليزي
+  const formatTime = (value: string) => {
+    const [h, m] = value.split(":").map(Number);
+    if (!Number.isFinite(h) || !Number.isFinite(m)) return value;
+    const hour12 = h % 12 === 0 ? 12 : h % 12;
+    const minutes = String(m).padStart(2, "0");
+    const suffix = lang === "en" ? (h < 12 ? "AM" : "PM") : h < 12 ? "ص" : "م";
+    return `${hour12}:${minutes} ${suffix}`;
+  };
+
+  const hasTimes = Boolean(program.startTime && program.endTime);
 
   return (
     <div className="mx-auto max-w-4xl pt-4 sm:pt-6">
@@ -55,18 +66,52 @@ export default function CorporateProgramDetailView({
           <p className="leading-relaxed text-neutral-600">{description}</p>
         </div>
 
-        {highlights.length > 0 && (
+        {program.itinerary.length > 0 && (
           <div className="mt-6 border-t border-black/5 pt-6">
             <h2 className="mb-4 text-lg font-bold text-brand-blue">
               {t.programSection.highlightsHeading}
             </h2>
-            <ul className="flex flex-col gap-3">
-              {highlights.map((item) => (
-                <li key={item} className="flex items-center gap-3 text-sm font-medium text-neutral-700">
-                  <CheckIcon /> {item}
-                </li>
-              ))}
-            </ul>
+
+            {hasTimes && (
+              <div className="mb-5 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl bg-neutral-50 px-4 py-3 text-sm">
+                <span className="font-semibold text-neutral-500">
+                  {t.programSection.startTimeLabel}{" "}
+                  <span className="font-extrabold text-brand-orange">
+                    {formatTime(program.startTime)}
+                  </span>
+                </span>
+                <span className="font-semibold text-neutral-500">
+                  {t.programSection.endTimeLabel}{" "}
+                  <span className="font-extrabold text-brand-orange">
+                    {formatTime(program.endTime)}
+                  </span>
+                </span>
+              </div>
+            )}
+
+            {/* تايم لاين رأسي: نقطة لكل خطوة + خط واصل بينهم */}
+            <ol className="relative flex flex-col">
+              {program.itinerary.map((stepItem, index) => {
+                const title = lang === "en" ? stepItem.titleEn : stepItem.title;
+                const detail = lang === "en" ? stepItem.detailEn : stepItem.detail;
+                const isLast = index === program.itinerary.length - 1;
+
+                return (
+                  <li key={`${title}-${index}`} className="relative flex gap-4 pb-5 last:pb-0">
+                    <div className="flex flex-col items-center">
+                      <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-brand-orange" />
+                      {!isLast && <span className="mt-1 w-px flex-1 bg-black/10" />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-neutral-800">{title}</p>
+                      {detail && (
+                        <p className="mt-1 text-sm leading-relaxed text-neutral-500">{detail}</p>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
           </div>
         )}
 

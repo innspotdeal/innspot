@@ -57,8 +57,10 @@ export const translations = {
       statCustom: "—",
     },
     programSection: {
-      highlightsHeading: "أبرز محطات البرنامج",
+      highlightsHeading: "مخطط الرحلة",
       includesHeading: "يشمل البرنامج",
+      startTimeLabel: "التحرك:",
+      endTimeLabel: "العودة:",
     },
     programDetail: {
       back: "→ العودة إلى رحلات شركات",
@@ -159,8 +161,10 @@ export const translations = {
       statCustom: "—",
     },
     programSection: {
-      highlightsHeading: "Program Highlights",
+      highlightsHeading: "Trip Itinerary",
       includesHeading: "Program Includes",
+      startTimeLabel: "Departure:",
+      endTimeLabel: "Return:",
     },
     programDetail: {
       back: "← Back to Corporate Trips",

@@ -1,11 +1,20 @@
 // ============================================================
 // ملاحظة مهمة: البيانات الحية لبرامج الشركات متخزنة في قاعدة البيانات
 // (جدول corporate_programs) ومتعدَّلة من لوحة الأدمن على /admin/programs
-// التعديل هنا مش هيغيّر حاجة في الموقع المنشور. الملف ده استخدامه الوحيد:
-// seed أولي عبر scripts/init-db.mjs. راجع src/lib/programs-repo.ts
-// للوصول الفعلي للبيانات، و src/lib/pricing.ts للتسعير (متخزن في قاعدة
-// البيانات كمان، ومتعدَّل من /admin/pricing)
+// الملف ده هو المصدر الأصلي للمحتوى وقت التهيئة أو الترحيل:
+//   - scripts/init-db.mjs (قاعدة بيانات جديدة)
+//   - scripts/programs-itinerary-migration.mjs (تحديث قاعدة موجودة)
+// راجع src/lib/programs-repo.ts للوصول الفعلي للبيانات،
+// و src/lib/pricing.ts للتسعير (متخزن في قاعدة البيانات ومتعدَّل من /admin/pricing)
 // ============================================================
+
+// خطوة واحدة في مخطط الرحلة: عنوان + تفصيل اختياري تحته (زي مكونات الوجبة)
+export type ItineraryStep = {
+  title: string;
+  titleEn: string;
+  detail: string;
+  detailEn: string;
+};
 
 export type CorporateProgram = {
   id: string;
@@ -13,10 +22,15 @@ export type CorporateProgram = {
   nameEn: string;
   description: string;
   descriptionEn: string;
-  highlights: string[];
-  highlightsEn: string[];
+  // مخطط الرحلة بالترتيب — ده اللي بيتعرض في صفحة البرنامج كتايم لاين
+  itinerary: ItineraryStep[];
+  // أوقات التحرك والعودة بصيغة 24 ساعة ("07:00") — بتتنسق حسب اللغة وقت العرض
+  // فاضية = مش هيظهر شريط الأوقات في الصفحة
+  startTime: string;
+  endTime: string;
   duration: string;
   durationEn: string;
+  // اللي بيشمله السعر — لازم يبقى مختلف عن خطوات المخطط، مش تكرار ليها
   includes: string[];
   includesEn: string[];
   images: string[];
@@ -25,152 +39,220 @@ export type CorporateProgram = {
   isCustom: boolean;
 };
 
+const step = (title: string, titleEn: string, detail = "", detailEn = ""): ItineraryStep => ({
+  title,
+  titleEn,
+  detail,
+  detailEn,
+});
+
 export const corporatePrograms: CorporateProgram[] = [
   {
     id: "innspot-classic",
-    name: "برنامج إنسبوت كلاسيك",
-    nameEn: "Innspot Classic",
+    name: "برنامج رحلة الباص",
+    nameEn: "Bus Trip",
     description:
-      "رحلة يوم كامل في واحة الزاواي ومحيطها، تجمع بين الطبيعة والهدوء والأنشطة الترفيهية البسيطة، مناسبة لفرق عايزة تجربة استرخاء وترابط بعيد عن أجواء الشركة.",
+      "رحلة يوم كامل بالباص تجمع بين شلالات وادي الريان وجبل المدورة وكامب الماجيك ليك، مع ركوب المركب والساند بورد والغداء في الكامب وجلسة كامب فاير.",
     descriptionEn:
-      "A full-day trip in Zawya Oasis and its surroundings, combining nature, calm, and simple recreational activities — suited for teams looking for a relaxing bonding experience away from the corporate atmosphere.",
-    highlights: [
-      "الإفطار في واحة الزاواي",
-      "زيارة الشلالات",
-      "جبل المدورة (الصعود أو الاستمتاع بالإطلالة)",
-      "الساند بورد",
-      "ركوب المركب في البحيرة",
-      "الغداء في كامب الزاواي",
-      "الكامب فاير (شاي ومارشميلو)",
+      "A full-day bus trip combining the Wadi El Rayan waterfalls, Al-Madawra Mountain, and Magic Lake Camp, with a boat ride, sandboarding, lunch at the camp, and a campfire session.",
+    itinerary: [
+      step(
+        "الإفطار في واحة الزواوي",
+        "Breakfast at Zawya Oasis",
+        "فطير مشلتت + عسل + جبنة + مش فلاحي",
+        "Feteer meshaltet + honey + cheese + farm mish"
+      ),
+      step(
+        "زيارة شلالات وادي الريان",
+        "Visiting the Wadi El Rayan waterfalls",
+        "الاستمتاع بالمياه والمناظر الطبيعية الخلابة",
+        "Enjoying the water and the stunning scenery"
+      ),
+      step(
+        "جبل المدورة",
+        "Al-Madawra Mountain",
+        "الصعود إلى الجبل والاستمتاع بالإطلالة البانورامية",
+        "Climbing the mountain and enjoying the panoramic view"
+      ),
+      step("التوجه إلى كامب الماجيك", "Heading to Magic Camp"),
+      step("ركوب المركب في بحيرة الماجيك ليك", "A boat ride on the Magic Lake"),
+      step(
+        "الساند بورد",
+        "Sandboarding",
+        "تجربة التزلج على الرمال وسط الكثبان",
+        "Sliding down the dunes on a board"
+      ),
+      step(
+        "الغداء في كامب الماجيك",
+        "Lunch at Magic Camp",
+        "ربع فرخة + أرز + بطاطس + سلطة عربي + طحينة + عيش",
+        "Quarter chicken + rice + potatoes + arabic salad + tahini + bread"
+      ),
+      step(
+        "الكامب فاير",
+        "Campfire",
+        "سهرة مميزة حول النار — شاي + مارشميلو",
+        "A special evening around the fire — tea + marshmallows"
+      ),
     ],
-    highlightsEn: [
-      "Breakfast at Zawya Oasis",
-      "Visiting the waterfalls",
-      "Al-Madawra Mountain (climb it or enjoy the view)",
-      "Sandboarding",
-      "Boat ride on the lake",
-      "Lunch at Zawya Camp",
-      "Campfire (tea and marshmallows)",
-    ],
-    duration: "يوم كامل حتى المساء (من الصباح حتى المساء تقريبًا)",
-    durationEn: "Full day into the evening (from morning until evening, approx.)",
-    includes: ["إفطار في واحة الزاواي", "غداء في كامب الزاواي", "معدات الساند بورد", "جولة بالمركب", "جلسة كامب فاير"],
-    includesEn: ["Breakfast at Zawya Oasis", "Lunch at Zawya Camp", "Sandboarding equipment", "Boat ride", "Campfire session"],
-    images: ["/images/safari-waterfall.jpg", "/images/safari-dunes.jpg", "/images/lake-boats.jpg"],
-    isCustom: false,
-  },
-  {
-    id: "advance-program",
-    name: "برنامج أدفانس",
-    nameEn: "Advance",
-    description:
-      "نفس مكونات برنامج Classic، بترتيب مختلف والغداء بيتقدم في كامب الماجيك ليك بدل الرجوع لواحة الزاواي.",
-    descriptionEn:
-      "The same components as the Classic program, in a different order, with lunch served at Magic Lake Camp instead of returning to Zawya Oasis.",
-    highlights: [
-      "الإفطار في واحة الزاواي",
-      "زيارة الشلالات",
-      "جبل المدورة (الصعود أو الاستمتاع بالإطلالة)",
-      "التوجه إلى كامب الماجيك",
-      "الساند بورد",
-      "الغداء في كامب الماجيك",
-      "ركوب المركب في البحيرة",
-      "الكامب فاير (شاي ومارشميلو)",
-    ],
-    highlightsEn: [
-      "Breakfast at Zawya Oasis",
-      "Visiting the waterfalls",
-      "Al-Madawra Mountain (climb it or enjoy the view)",
-      "Heading to Magic Camp",
-      "Sandboarding",
-      "Lunch at Magic Camp",
-      "Boat ride on the lake",
-      "Campfire (tea and marshmallows)",
-    ],
-    duration: "يوم كامل حتى المساء (من الصباح حتى المساء تقريبًا)",
-    durationEn: "Full day into the evening (from morning until evening, approx.)",
-    includes: ["إفطار في واحة الزاواي", "غداء في كامب الماجيك", "معدات الساند بورد", "جولة بالمركب", "جلسة كامب فاير"],
-    includesEn: ["Breakfast at Zawya Oasis", "Lunch at Magic Camp", "Sandboarding equipment", "Boat ride", "Campfire session"],
-    images: ["/images/safari-dunes.jpg", "/images/lake-boats.jpg", "/images/safari-waterfall.jpg"],
+    startTime: "",
+    endTime: "",
+    duration: "يوم كامل",
+    durationEn: "A full day",
+    includes: ["الانتقالات بالباص", "تذاكر دخول المحمية", "مشرف الرحلة"],
+    includesEn: ["Bus transfers", "Reserve entry tickets", "A trip supervisor"],
+    images: ["/images/safari-waterfall.jpg", "/images/lake-boats.jpg", "/images/safari-dunes.jpg"],
     isCustom: false,
   },
   {
     id: "classic-safari",
-    name: "برنامج كلاسيك سفاري",
-    nameEn: "Classic Safari",
+    name: "برنامج رحلة السفاري",
+    nameEn: "Safari Trip",
     description:
-      "رحلة يوم كامل تعتمد على سيارات السفاري والتنقل بالدفع الرباعي وسط محمية وادي الريان، مناسبة لفرق عايزة عنصر مغامرة وأدرينالين مع الطبيعة.",
+      "رحلة يوم كامل بسيارات السفاري وسط محمية وادي الريان، تجمع بين مغامرة الكثبان الرملية والشلالات والبحيرة السحرية، وتنتهي بغداء في واحة الزاواي وجلسة كامب فاير.",
     descriptionEn:
-      "A full-day trip based on safari vehicles and 4x4 travel through the Wadi El Rayan reserve, suited for teams looking for a touch of adventure and adrenaline with nature.",
-    highlights: [
-      "الإفطار في واحة الزاواي",
-      "التحرك إلى محمية وادي الريان بسيارات السفاري",
-      "مغامرة بسيارات الدفع الرباعي وسط الكثبان الرملية",
-      "التزلج على الرمال (Sandboarding)",
-      "زيارة شلالات وادي الريان",
-      "التوقف عند نقطة الـ View",
-      "زيارة البحيرة السحرية (Magic Lake)",
-      "تجربة الشاي البدوي بجوار البحيرة",
-      "العودة إلى واحة الزاواي لتناول الغداء",
-      "جلسة كامب فاير بأجواء بدوية",
+      "A full-day trip by safari vehicles through the Wadi El Rayan reserve, combining a sand-dune adventure, the waterfalls, and the Magic Lake, ending with lunch at Zawya Oasis and a campfire session.",
+    itinerary: [
+      step(
+        "الإفطار في واحة الزاواي",
+        "Breakfast at Zawya Oasis",
+        "فطير مشلتت + عسل + جبنة + مش",
+        "Feteer meshaltet + honey + cheese + mish"
+      ),
+      step(
+        "التحرك إلى محمية وادي الريان بسيارات السفاري",
+        "Heading to the Wadi El Rayan reserve by safari vehicles"
+      ),
+      step("مغامرة بسيارات الدفع الرباعي وسط الكثبان الرملية", "A 4x4 adventure among the sand dunes"),
+      step("التزلج على الرمال (Sandboarding)", "Sandboarding"),
+      step("زيارة شلالات وادي الريان", "Visiting the Wadi El Rayan waterfalls"),
+      step(
+        "التوقف عند نقطة الـ View",
+        "Stopping at the view point",
+        "إطلالة بانورامية على المحمية",
+        "A panoramic view over the reserve"
+      ),
+      step("زيارة البحيرة السحرية (Magic Lake)", "Visiting the Magic Lake"),
+      step("تجربة الشاي البدوي بجوار البحيرة", "A bedouin tea experience by the lake"),
+      step(
+        "العودة إلى واحة الزاواي لتناول الغداء",
+        "Returning to Zawya Oasis for lunch",
+        "ربع فرخة + أرز + سلطة + عيش + طحينة",
+        "Quarter chicken + rice + salad + bread + tahini"
+      ),
+      step("جلسة كامب فاير", "Campfire session", "أجواء بدوية مميزة", "A distinctive bedouin atmosphere"),
     ],
-    highlightsEn: [
-      "Breakfast at Zawya Oasis",
-      "Traveling to the Wadi El Rayan reserve by safari vehicles",
-      "4x4 adventure among the sand dunes",
-      "Sandboarding",
-      "Visiting the Wadi El Rayan waterfalls",
-      "Stopping at the view point",
-      "Visiting the Magic Lake",
-      "Bedouin tea experience by the lake",
-      "Returning to Zawya Oasis for lunch",
-      "Campfire session with a bedouin atmosphere",
-    ],
-    duration: "يوم كامل حتى المساء (من الصباح حتى المساء تقريبًا)",
-    durationEn: "Full day into the evening (from morning until evening, approx.)",
-    includes: ["سيارات السفاري", "إفطار في واحة الزاواي", "غداء في واحة الزاواي", "شاي بدوي", "جلسة كامب فاير"],
-    includesEn: ["Safari vehicles", "Breakfast at Zawya Oasis", "Lunch at Zawya Oasis", "Bedouin tea", "Campfire session"],
+    startTime: "",
+    endTime: "",
+    duration: "يوم كامل",
+    durationEn: "A full day",
+    includes: ["سيارات السفاري", "تذاكر دخول المحمية", "مشرف الرحلة"],
+    includesEn: ["Safari vehicles", "Reserve entry tickets", "A trip supervisor"],
     images: ["/images/safari-dunes.jpg", "/images/safari-waterfall.jpg", "/images/lake-dramatic.jpg"],
     isCustom: false,
   },
   {
     id: "advance-safari",
-    name: "برنامج أدفانس سفاري",
-    nameEn: "Advance Safari",
+    name: "برنامج رحلة السفاري — غداء الكامب",
+    nameEn: "Safari Trip — Camp Lunch",
     description:
-      "نفس مكونات برنامج Classic Safari، مع تقديم الغداء في كامب الماجيك ليك بدل الرجوع لواحة الزاواي.",
+      "نفس مكونات رحلة السفاري، لكن الغداء بيتقدم في كامب الماجيك ليك وسط أجواء الطبيعة بدل الرجوع لواحة الزاواي.",
     descriptionEn:
-      "The same components as the Classic Safari program, with lunch served at Magic Lake Camp instead of returning to Zawya Oasis.",
-    highlights: [
-      "الإفطار في واحة الزاواي",
-      "التحرك إلى محمية وادي الريان بسيارات السفاري",
-      "مغامرة بسيارات الدفع الرباعي وسط الكثبان الرملية",
-      "التزلج على الرمال (Sandboarding)",
-      "زيارة شلالات وادي الريان",
-      "التوقف عند نقطة الـ View",
-      "زيارة البحيرة السحرية (Magic Lake)",
-      "تجربة الشاي البدوي بجوار البحيرة",
-      "الغداء في كامب الماجيك ليك",
-      "جلسة كامب فاير بأجواء بدوية",
+      "The same components as the Safari Trip, but lunch is served at Magic Lake Camp amid nature instead of returning to Zawya Oasis.",
+    itinerary: [
+      step(
+        "الإفطار في واحة الزاواي",
+        "Breakfast at Zawya Oasis",
+        "فطير مشلتت + عسل + جبنة + مش فلاحي",
+        "Feteer meshaltet + honey + cheese + farm mish"
+      ),
+      step(
+        "التحرك إلى محمية وادي الريان بسيارات السفاري",
+        "Heading to the Wadi El Rayan reserve by safari vehicles"
+      ),
+      step("مغامرة بسيارات الدفع الرباعي وسط الكثبان الرملية", "A 4x4 adventure among the sand dunes"),
+      step("التزلج على الرمال (Sandboarding)", "Sandboarding"),
+      step("زيارة شلالات وادي الريان", "Visiting the Wadi El Rayan waterfalls"),
+      step(
+        "التوقف عند نقطة الـ View",
+        "Stopping at the view point",
+        "إطلالة بانورامية رائعة",
+        "A wonderful panoramic view"
+      ),
+      step("زيارة البحيرة السحرية (Magic Lake)", "Visiting the Magic Lake"),
+      step("تجربة الشاي البدوي بجوار البحيرة", "A bedouin tea experience by the lake"),
+      step(
+        "الغداء في كامب الماجيك ليك",
+        "Lunch at Magic Lake Camp",
+        "ربع فرخة + أرز + بطاطس + سلطة عربي + طحينة + عيش",
+        "Quarter chicken + rice + potatoes + arabic salad + tahini + bread"
+      ),
+      step("جلسة كامب فاير", "Campfire session", "أجواء بدوية مميزة", "A distinctive bedouin atmosphere"),
     ],
-    highlightsEn: [
-      "Breakfast at Zawya Oasis",
-      "Traveling to the Wadi El Rayan reserve by safari vehicles",
-      "4x4 adventure among the sand dunes",
-      "Sandboarding",
-      "Visiting the Wadi El Rayan waterfalls",
-      "Stopping at the view point",
-      "Visiting the Magic Lake",
-      "Bedouin tea experience by the lake",
-      "Lunch at Magic Lake Camp",
-      "Campfire session with a bedouin atmosphere",
-    ],
-    duration: "يوم كامل حتى المساء (من الصباح حتى المساء تقريبًا)",
-    durationEn: "Full day into the evening (from morning until evening, approx.)",
-    includes: ["سيارات السفاري", "إفطار في واحة الزاواي", "غداء في كامب الماجيك ليك", "شاي بدوي", "جلسة كامب فاير"],
-    includesEn: ["Safari vehicles", "Breakfast at Zawya Oasis", "Lunch at Magic Lake Camp", "Bedouin tea", "Campfire session"],
+    startTime: "",
+    endTime: "",
+    duration: "يوم كامل",
+    durationEn: "A full day",
+    includes: ["سيارات السفاري", "تذاكر دخول المحمية", "مشرف الرحلة"],
+    includesEn: ["Safari vehicles", "Reserve entry tickets", "A trip supervisor"],
     images: ["/images/safari-waterfall.jpg", "/images/lake-boats.jpg", "/images/safari-dunes.jpg"],
     isCustom: false,
+  },
+  {
+    id: "magic-lake-camp",
+    name: "برنامج رحلة كامب الماجيك ليك",
+    nameEn: "Magic Lake Camp Trip",
+    description:
+      "رحلة يومين بمبيت في كامب الماجيك ليك: اليوم الأول ركوب مركب وساند بورد وعشاء وكامب فاير وسط الصحراء، واليوم التاني شروق وإفطار ريفي وجبل المدورة والشلالات وجولة في قرية تونس وورش الفخار.",
+    descriptionEn:
+      "A two-day trip with an overnight stay at Magic Lake Camp: day one brings a boat ride, sandboarding, dinner, and a campfire in the desert; day two brings the sunrise, a rustic breakfast, Al-Madawra Mountain, the waterfalls, and a tour of Tunis Village and its pottery workshops.",
+    itinerary: [
+      step("اليوم الأول — الوصول إلى كامب الماجيك ليك", "Day one — arriving at Magic Lake Camp"),
+      step("استلام الخيام الخاصة بالجروب", "Receiving the group's tents"),
+      step("المشاركة في تجهيز الكامب والاستراحة", "Helping set up the camp, then resting"),
+      step("ركوب المركب", "A boat ride"),
+      step("ساند بورد", "Sandboarding"),
+      step("العشاء", "Dinner", "فراخ + بطاطس + أرز + طحينة + سلطة", "Chicken + potatoes + rice + tahini + salad"),
+      step(
+        "كامب فاير وقعدة سمر",
+        "Campfire and an evening gathering",
+        "شوي مارشميلو + شاي بدوي",
+        "Grilled marshmallows + bedouin tea"
+      ),
+      step("اليوم التاني — مشاهدة الشروق داخل الكامب", "Day two — watching the sunrise from the camp"),
+      step(
+        "الإفطار الريفي داخل الكامب",
+        "A rustic breakfast at the camp",
+        "فطير مشلتت + عسل + جبنة بخضار",
+        "Feteer meshaltet + honey + cheese with vegetables"
+      ),
+      step("جبل المدورة", "Al-Madawra Mountain", "الصعود إلى أعلى الجبل", "Climbing to the top of the mountain"),
+      step("زيارة الشلالات", "Visiting the waterfalls"),
+      step(
+        "قرية تونس",
+        "Tunis Village",
+        "جولة حرة داخل القرية وزيارة ورش ومدارس الفخار — وإمكانية تجربة عمل قطع فخار بتكلفة إضافية",
+        "Free time in the village and a visit to the pottery workshops and schools — a hands-on pottery session is available at extra cost"
+      ),
+    ],
+    startTime: "",
+    endTime: "",
+    duration: "يومين — مبيت ليلة في الكامب",
+    durationEn: "Two days — one night at the camp",
+    includes: [
+      "الخيام والمبيت في الكامب",
+      "العشاء وإفطار اليوم التاني",
+      "ركوب المركب والساند بورد",
+      "كامب فاير وشاي بدوي",
+    ],
+    includesEn: [
+      "Tents and the overnight stay",
+      "Dinner and day-two breakfast",
+      "Boat ride and sandboarding",
+      "Campfire and bedouin tea",
+    ],
+    images: ["/images/safari-dunes.jpg", "/images/lake-dramatic.jpg", "/images/safari-waterfall.jpg"],
+    isCustom: true,
   },
   {
     id: "elite-program",
@@ -180,8 +262,9 @@ export const corporatePrograms: CorporateProgram[] = [
       "برنامج إليت (كستميز) مصمم خصيصًا حسب رغبتكم، بمرونة كاملة تشمل إمكانية تغيير أماكن الإفطار والغداء حسب الاختيار. برنامج مثالي لفعاليات الريتريت الجماعية، ويمكن أيضًا تصميمه لمن يرغبون في المبيت أو التخييم الليلي.",
     descriptionEn:
       "The Elite Program (Customize) is designed especially according to your preferences, with full flexibility including the ability to change the breakfast and lunch locations of your choice. An ideal program for group retreat events, and can also be designed for those who wish to stay overnight or camp.",
-    highlights: [],
-    highlightsEn: [],
+    itinerary: [],
+    startTime: "",
+    endTime: "",
     duration: "مرن حسب تصميم البرنامج",
     durationEn: "Flexible, based on the custom program design",
     includes: [],

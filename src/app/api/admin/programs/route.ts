@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createProgram, listPrograms, type ProgramInput } from "@/lib/programs-repo";
+import { toImageList, toItinerary, toList } from "@/lib/program-input";
 
 function slugify(text: string): string {
   return text
@@ -9,21 +10,6 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-function toList(value: unknown): string[] {
-  return typeof value === "string"
-    ? value.split("\n").map((s) => s.trim()).filter(Boolean)
-    : Array.isArray(value)
-      ? value.filter((v): v is string => typeof v === "string")
-      : [];
-}
-
-function toImageList(value: unknown): string[] {
-  return typeof value === "string"
-    ? value.split(",").map((s) => s.trim()).filter(Boolean)
-    : Array.isArray(value)
-      ? value.filter((v): v is string => typeof v === "string")
-      : [];
-}
 
 function parseProgramInput(
   body: unknown
@@ -48,8 +34,9 @@ function parseProgramInput(
       nameEn,
       description: typeof b.description === "string" ? b.description.trim() : "",
       descriptionEn: typeof b.descriptionEn === "string" ? b.descriptionEn.trim() : "",
-      highlights: toList(b.highlights),
-      highlightsEn: toList(b.highlightsEn),
+      itinerary: toItinerary(b.itinerary, b.itineraryEn),
+      startTime: typeof b.startTime === "string" ? b.startTime.trim() : "",
+      endTime: typeof b.endTime === "string" ? b.endTime.trim() : "",
       duration: typeof b.duration === "string" ? b.duration.trim() : "",
       durationEn: typeof b.durationEn === "string" ? b.durationEn.trim() : "",
       includes: toList(b.includes),

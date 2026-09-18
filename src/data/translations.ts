@@ -50,6 +50,8 @@ export const translations = {
       trustedByHeading: "شركات وثقت بينا",
     },
     programCard: {
+      startsFrom: (price: string) => `يبدأ من ${price} ج للفرد`,
+      customPrice: "السعر حسب اختيارك",
       fullDetails: "البرنامج كامل والتفاصيل ←",
       statStops: "محطات",
       statIncludes: "يشمل",
@@ -154,6 +156,8 @@ export const translations = {
       trustedByHeading: "Trusted by teams from",
     },
     programCard: {
+      startsFrom: (price: string) => `From ${price} EGP per person`,
+      customPrice: "Price based on your choices",
       fullDetails: "Full program & details →",
       statStops: "Stops",
       statIncludes: "Includes",

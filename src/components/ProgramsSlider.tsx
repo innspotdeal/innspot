@@ -18,7 +18,13 @@ function ChevronIcon({ direction }: { direction: "prev" | "next" }) {
   );
 }
 
-export default function ProgramsSlider({ programs }: { programs: CorporateProgram[] }) {
+export default function ProgramsSlider({
+  programs,
+  startingPrices = {},
+}: {
+  programs: CorporateProgram[];
+  startingPrices?: Record<string, number>;
+}) {
   const { lang } = useLanguage();
   const t = translations[lang];
   const textDir = lang === "en" ? "ltr" : "rtl";
@@ -31,6 +37,7 @@ export default function ProgramsSlider({ programs }: { programs: CorporateProgra
   const name = lang === "en" ? program.nameEn : program.name;
   const description = lang === "en" ? program.descriptionEn : program.description;
   const duration = lang === "en" ? program.durationEn : program.duration;
+  const startingPrice = startingPrices[program.id];
 
   return (
     <div
@@ -75,7 +82,12 @@ export default function ProgramsSlider({ programs }: { programs: CorporateProgra
         >
           <span className="mb-3 line-clamp-1 font-medium text-[#7b7992]">{duration}</span>
           <div className="mb-3 line-clamp-2 text-2xl font-bold text-[#0d0925]">{name}</div>
-          <p className="mb-6 line-clamp-3 leading-relaxed text-[#4e4a67]">{description}</p>
+          <p className="mb-4 line-clamp-3 leading-relaxed text-[#4e4a67]">{description}</p>
+          <p className="mb-5 text-sm font-extrabold text-brand-orange">
+            {startingPrice
+              ? t.programCard.startsFrom(startingPrice.toLocaleString("en-US"))
+              : t.programCard.customPrice}
+          </p>
           <Link
             href={`/corporate-trips/${program.id}`}
             className="inline-flex justify-center rounded-full bg-gradient-to-br from-trip-yellow to-brand-orange px-9 py-4 font-medium tracking-wide text-white shadow-[0px_14px_80px_rgba(241,90,37,0.35)] max-md:w-full"

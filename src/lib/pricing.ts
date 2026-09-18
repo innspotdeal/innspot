@@ -224,3 +224,28 @@ export async function calculatePrice({
     total: Math.ceil(total),
   };
 }
+
+// أقل سعر ممكن للفرد في البرنامج — بنجرب كل الأعداد من الحد الأدنى لحد MAX
+// وناخد أرخص نتيجة (السعر بيقل مع زيادة العدد لكن شرائح الربح بتزوّده، فالأقل
+// مش دايمًا عند أكبر عدد)
+const STARTING_PRICE_MAX_PEOPLE = 50;
+
+export async function getStartingPricePerPerson(programId: string): Promise<number | null> {
+  let cheapest: number | null = null;
+
+  for (let people = MIN_PEOPLE; people <= STARTING_PRICE_MAX_PEOPLE; people++) {
+    const result = await calculatePrice({ programId, people, addons: [] });
+    if (!result.ok) continue;
+    if (cheapest === null || result.pricePerPerson < cheapest) cheapest = result.pricePerPerson;
+  }
+
+  return cheapest;
+}
+
+// نفس الحاجة لكل البرامج مرة واحدة
+export async function getStartingPrices(programIds: string[]): Promise<Record<string, number>> {
+  const entries = await Promise.all(
+    programIds.map(async (id) => [id, await getStartingPricePerPerson(id)] as const)
+  );
+  return Object.fromEntries(entries.filter(([, price]) => price !== null)) as Record<string, number>;
+}

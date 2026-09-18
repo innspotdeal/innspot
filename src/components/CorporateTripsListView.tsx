@@ -30,8 +30,10 @@ function ArrowRightIcon({ className = "size-6" }: { className?: string }) {
 
 export default function CorporateTripsListView({
   corporatePrograms,
+  startingPrices = {},
 }: {
   corporatePrograms: CorporateProgram[];
+  startingPrices?: Record<string, number>;
 }) {
   const { lang, toggleLang } = useLanguage();
   const t = translations[lang];
@@ -200,7 +202,7 @@ export default function CorporateTripsListView({
         </div>
 
         <div className="mt-10">
-          <ProgramsSlider programs={corporatePrograms} />
+          <ProgramsSlider programs={corporatePrograms} startingPrices={startingPrices} />
         </div>
       </main>
     </div>

@@ -20,6 +20,7 @@ export default function BookingForm({
   const [programId, setProgramId] = useState(initialProgramId);
   const [people, setPeople] = useState("");
   const [selectedAddons, setSelectedAddons] = useState<AddonKey[]>([]);
+  const [includeTransport, setIncludeTransport] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PriceResult | null>(null);
@@ -55,6 +56,7 @@ export default function BookingForm({
           programId,
           people: peopleNumber,
           addons: selectedAddons,
+          includeTransport,
           lang,
         }),
       });
@@ -118,6 +120,17 @@ export default function BookingForm({
         </div>
 
         <div>
+          <span className="mb-2 block text-sm font-bold text-neutral-800">{t.transportLabel}</span>
+          <label className="mb-5 flex cursor-pointer items-center gap-3 rounded-xl border border-neutral-300 px-4 py-3 text-sm">
+            <input
+              type="checkbox"
+              checked={includeTransport}
+              onChange={(e) => setIncludeTransport(e.target.checked)}
+              className="size-4 accent-brand-orange"
+            />
+            <span className="font-medium text-neutral-700">{t.transportInclude}</span>
+          </label>
+
           <span className="mb-2 block text-sm font-bold text-neutral-800">{t.addonsLabel}</span>
           <div className="flex flex-col gap-2">
             {ADDON_OPTIONS.map((addon) => (

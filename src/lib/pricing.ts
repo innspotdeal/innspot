@@ -73,6 +73,72 @@ export async function listVehicles(group: string): Promise<Vehicle[]> {
   }));
 }
 
+// بند بيتسعّر حسب عدد الأفراد
+export const TIER_KINDS = ["breakfast", "lunch", "tickets"] as const;
+export type TierKind = (typeof TIER_KINDS)[number];
+
+export type PriceTier = {
+  kind: TierKind;
+  fromPeople: number;
+  toPeople: number; // 0 = وما فوق
+  price: number;
+};
+
+type TierRow = {
+  kind: TierKind;
+  from_people: number;
+  to_people: number;
+  price: number;
+};
+
+export async function listProgramTiers(programId: string): Promise<PriceTier[]> {
+  const result = await pool.query<TierRow>(
+    "SELECT kind, from_people, to_people, price FROM program_price_tiers WHERE program_id=$1 ORDER BY kind, from_people",
+    [programId]
+  );
+  return result.rows.map((r) => ({
+    kind: r.kind,
+    fromPeople: r.from_people,
+    toPeople: r.to_people,
+    price: Number(r.price),
+  }));
+}
+
+export async function listAllProgramTiers(): Promise<Record<string, PriceTier[]>> {
+  const result = await pool.query<TierRow & { program_id: string }>(
+    "SELECT program_id, kind, from_people, to_people, price FROM program_price_tiers ORDER BY program_id, kind, from_people"
+  );
+  const map: Record<string, PriceTier[]> = {};
+  for (const r of result.rows) {
+    (map[r.program_id] ??= []).push({
+      kind: r.kind,
+      fromPeople: r.from_people,
+      toPeople: r.to_people,
+      price: Number(r.price),
+    });
+  }
+  return map;
+}
+
+export async function setProgramTiers(programId: string, tiers: PriceTier[]): Promise<void> {
+  await pool.query("DELETE FROM program_price_tiers WHERE program_id=$1", [programId]);
+  for (const t of tiers) {
+    await pool.query(
+      `INSERT INTO program_price_tiers (program_id, kind, from_people, to_people, price)
+       VALUES ($1,$2,$3,$4,$5)`,
+      [programId, t.kind, t.fromPeople, t.toPeople, t.price]
+    );
+  }
+}
+
+// سعر البند للعدد ده — أول شريحة العدد واقع جواها
+function priceForPeople(tiers: PriceTier[], kind: TierKind, people: number): number {
+  const match = tiers.find(
+    (t) => t.kind === kind && people >= t.fromPeople && (t.toPeople <= 0 || people <= t.toPeople)
+  );
+  return match ? match.price : 0;
+}
+
 export async function getProgramPricing(programId: string): Promise<ProgramPricing | null> {
   const result = await pool.query<ProgramPricingRow>(
     "SELECT * FROM program_pricing WHERE program_id = $1",
@@ -166,6 +232,8 @@ export type CalculatePriceInput = {
   programId: string;
   people: number;
   addons: AddonKey[];
+  // الانتقالات اختيارية — العميل ممكن ييجي بمواصلاته
+  includeTransport?: boolean;
 };
 
 export type CalculatePriceResult =
@@ -183,6 +251,7 @@ export async function calculatePrice({
   programId,
   people,
   addons,
+  includeTransport = true,
 }: CalculatePriceInput): Promise<CalculatePriceResult> {
   const pricing = await getProgramPricing(programId);
   if (!pricing) {
@@ -199,16 +268,24 @@ export async function calculatePrice({
 
   const [settings, addonPrices] = await Promise.all([getPricingSettings(), getAddonPrices()]);
 
-  const mealsAndTicketsPerPerson =
-    pricing.breakfastPerPerson + pricing.lunchPerPerson + pricing.ticketsPerPerson;
+  // الأسعار بتتاخد من الشرائح حسب العدد، ولو مفيش شرائح بنرجع للسعر الثابت القديم
+  const tiers = await listProgramTiers(programId);
+  const mealsAndTicketsPerPerson = tiers.length
+    ? priceForPeople(tiers, "breakfast", people) +
+      priceForPeople(tiers, "lunch", people) +
+      priceForPeople(tiers, "tickets", people)
+    : pricing.breakfastPerPerson + pricing.lunchPerPerson + pricing.ticketsPerPerson;
 
   // تكلفة الانتقالات: بتتحسب من المركبات المسجلة حسب مجموعة البرنامج
   // (السفاري عربية 6 أفراد بسعر ثابت، والباصات نوعها بيتحدد حسب العدد)
-  const vehicles = await listVehicles(pricing.transportGroup || "safari");
-  const carsCost =
-    vehicles.length > 0
-      ? allocateFleet(people, vehicles).total
-      : Math.ceil(people / settings.peoplePerCar) * pricing.carPrice;
+  let carsCost = 0;
+  if (includeTransport) {
+    const vehicles = await listVehicles(pricing.transportGroup || "safari");
+    carsCost =
+      vehicles.length > 0
+        ? allocateFleet(people, vehicles).total
+        : Math.ceil(people / settings.peoplePerCar) * pricing.carPrice;
+  }
 
   const addonsCost = addons.reduce((sum, key) => sum + (addonPrices[key] ?? 0), 0);
 

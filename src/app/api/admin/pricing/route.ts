@@ -9,19 +9,22 @@ import {
   type MarginTier,
 } from "@/lib/pricing";
 import { listPrograms } from "@/lib/programs-repo";
+import { listAllProgramTiers, setProgramTiers, TIER_KINDS, type PriceTier, type TierKind } from "@/lib/pricing";
 
 export async function GET() {
-  const [programs, programPricing, addonPrices, settings] = await Promise.all([
+  const [programs, programPricing, addonPrices, settings, programTiers] = await Promise.all([
     listPrograms(),
     listProgramPricing(),
     getAddonPrices(),
     getPricingSettings(),
+    listAllProgramTiers(),
   ]);
 
   return NextResponse.json({
     ok: true,
     programs: programs.map((p) => ({ id: p.id, name: p.name, isCustom: p.isCustom })),
     programPricing,
+    programTiers,
     addonPrices,
     settings,
   });
@@ -62,6 +65,25 @@ export async function PATCH(request: Request) {
         carPrice: Number(p.carPrice) || 0,
         transportGroup: p.transportGroup === "bus" ? "bus" : "safari",
       });
+    }
+  }
+
+  if (b.programTiers !== undefined) {
+    const entries = Object.entries(b.programTiers as Record<string, unknown>);
+    for (const [programId, raw] of entries) {
+      if (!Array.isArray(raw)) continue;
+      const tiers: PriceTier[] = [];
+      for (const item of raw) {
+        const t = item as Record<string, unknown>;
+        if (!TIER_KINDS.includes(t.kind as TierKind)) continue;
+        tiers.push({
+          kind: t.kind as TierKind,
+          fromPeople: Number(t.fromPeople) || 0,
+          toPeople: Number(t.toPeople) || 0,
+          price: Number(t.price) || 0,
+        });
+      }
+      await setProgramTiers(programId, tiers);
     }
   }
 

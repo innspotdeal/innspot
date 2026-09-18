@@ -1,7 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import type { MarginTier, PricingSettings, ProgramPricing } from "@/lib/pricing";
+import { Fragment, useState } from "react";
+import type { MarginTier, PriceTier, PricingSettings, ProgramPricing, TierKind } from "@/lib/pricing";
+
+const TIER_KIND_LABELS: Record<TierKind, string> = {
+  breakfast: "الفطار",
+  lunch: "الغداء",
+  tickets: "التذاكر",
+};
+const TIER_KIND_LIST: TierKind[] = ["breakfast", "lunch", "tickets"];
 
 type ProgramSummary = { id: string; name: string; isCustom: boolean };
 type AddonOption = { key: string; label: string };
@@ -17,12 +24,14 @@ const emptyPricing: ProgramPricing = {
 export default function AdminPricingView({
   programs,
   initialProgramPricing,
+  initialProgramTiers,
   addonOptions,
   initialAddonPrices,
   initialSettings,
 }: {
   programs: ProgramSummary[];
   initialProgramPricing: Record<string, ProgramPricing>;
+  initialProgramTiers: Record<string, PriceTier[]>;
   addonOptions: AddonOption[];
   initialAddonPrices: Record<string, number>;
   initialSettings: PricingSettings;
@@ -41,6 +50,12 @@ export default function AdminPricingView({
     }
     return map;
   });
+  const [programTiers, setProgramTiers] = useState<Record<string, PriceTier[]>>(() => {
+    const map: Record<string, PriceTier[]> = {};
+    for (const p of programs) map[p.id] = initialProgramTiers[p.id] ?? [];
+    return map;
+  });
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [peoplePerCar, setPeoplePerCar] = useState(String(initialSettings.peoplePerCar));
   const [marginTiers, setMarginTiers] = useState<MarginTier[]>(
     initialSettings.marginTiers.length
@@ -75,7 +90,10 @@ export default function AdminPricingView({
   async function handleSaveProgram(programId: string) {
     setSavingProgram(programId);
     try {
-      const data = await patchPricing({ programPricing: { [programId]: programPricing[programId] } });
+      const data = await patchPricing({
+        programPricing: { [programId]: programPricing[programId] },
+        programTiers: { [programId]: programTiers[programId] ?? [] },
+      });
       if (!data.ok) flash(data.error || "حدث خطأ", true);
       else flash("تم حفظ التسعير");
     } catch {
@@ -111,6 +129,29 @@ export default function AdminPricingView({
     } finally {
       setSavingSettings(false);
     }
+  }
+
+  function addPriceTier(programId: string, kind: TierKind) {
+    setProgramTiers((prev) => ({
+      ...prev,
+      [programId]: [...(prev[programId] ?? []), { kind, fromPeople: 0, toPeople: 0, price: 0 }],
+    }));
+  }
+
+  function updatePriceTier(programId: string, index: number, field: keyof PriceTier, value: string) {
+    setProgramTiers((prev) => ({
+      ...prev,
+      [programId]: (prev[programId] ?? []).map((t, i) =>
+        i === index ? { ...t, [field]: Number(value) || 0 } : t
+      ),
+    }));
+  }
+
+  function removePriceTier(programId: string, index: number) {
+    setProgramTiers((prev) => ({
+      ...prev,
+      [programId]: (prev[programId] ?? []).filter((_, i) => i !== index),
+    }));
   }
 
   function updateTier(index: number, field: keyof MarginTier, value: string) {
@@ -149,9 +190,7 @@ export default function AdminPricingView({
             <thead className="bg-neutral-50 text-neutral-600">
               <tr>
                 <th className="px-3 py-3 font-bold">البرنامج</th>
-                <th className="px-3 py-3 font-bold">فطار/فرد</th>
-                <th className="px-3 py-3 font-bold">غدا/فرد</th>
-                <th className="px-3 py-3 font-bold">تذاكر/فرد</th>
+                <th className="px-3 py-3 font-bold">الشرائح</th>
                 <th className="px-3 py-3 font-bold">الانتقالات</th>
                 <th className="px-3 py-3 font-bold"></th>
               </tr>
@@ -163,33 +202,25 @@ export default function AdminPricingView({
                   return (
                     <tr key={program.id} className="border-t border-black/5">
                       <td className="px-3 py-3 font-semibold text-brand-blue">{program.name}</td>
-                      <td colSpan={4} className="px-3 py-3 text-neutral-400">
+                      <td colSpan={3} className="px-3 py-3 text-neutral-400">
                         برنامج مخصّص — من غير سعر ثابت
                       </td>
-                      <td />
                     </tr>
                   );
                 }
                 return (
-                  <tr key={program.id} className="border-t border-black/5">
+                  <Fragment key={program.id}>
+                  <tr className="border-t border-black/5">
                     <td className="px-3 py-3 font-semibold text-brand-blue">{program.name}</td>
-                    {(["breakfastPerPerson", "lunchPerPerson", "ticketsPerPerson"] as const).map(
-                      (field) => (
-                        <td key={field} className="px-3 py-3">
-                          <input
-                            type="number"
-                            value={pricing[field]}
-                            onChange={(e) =>
-                              setProgramPricing((prev) => ({
-                                ...prev,
-                                [program.id]: { ...prev[program.id], [field]: Number(e.target.value) || 0 },
-                              }))
-                            }
-                            className="w-24 rounded-lg border border-black/10 px-2 py-1 outline-none focus:border-brand-blue"
-                          />
-                        </td>
-                      )
-                    )}
+                    <td className="px-3 py-3">
+                      <button
+                        onClick={() => setExpandedId((p) => (p === program.id ? null : program.id))}
+                        className="rounded-lg border border-black/10 px-3 py-1.5 text-xs font-bold text-neutral-700 hover:bg-neutral-50"
+                      >
+                        {(programTiers[program.id] ?? []).length} شريحة —{" "}
+                        {expandedId === program.id ? "إخفاء" : "تعديل"}
+                      </button>
+                    </td>
                     <td className="px-3 py-3">
                       <select
                         value={pricing.transportGroup}
@@ -215,6 +246,79 @@ export default function AdminPricingView({
                       </button>
                     </td>
                   </tr>
+
+                  {expandedId === program.id && (
+                    <tr className="border-t border-black/5 bg-neutral-50">
+                      <td colSpan={4} className="px-3 py-5">
+                        <p className="mb-3 text-sm font-bold text-neutral-800">
+                          أسعار {program.name} حسب عدد الأفراد
+                        </p>
+                        <p className="mb-4 text-xs text-neutral-500">
+                          مثال: من 1 إلى 19 بسعر، ومن 20 وما فوق بسعر تاني. سيب خانة &quot;إلى&quot;
+                          بصفر لو الشريحة مالهاش حد أقصى.
+                        </p>
+
+                        {TIER_KIND_LIST.map((kind) => {
+                          const all = programTiers[program.id] ?? [];
+                          return (
+                            <div key={kind} className="mb-4">
+                              <p className="mb-2 text-sm font-bold text-brand-blue">
+                                {TIER_KIND_LABELS[kind]}
+                              </p>
+                              <div className="flex flex-col gap-2">
+                                {all.map((tier, index) =>
+                                  tier.kind !== kind ? null : (
+                                    <div key={index} className="flex flex-wrap items-center gap-2">
+                                      <span className="text-xs text-neutral-500">من</span>
+                                      <input
+                                        type="number"
+                                        value={tier.fromPeople}
+                                        onChange={(e) =>
+                                          updatePriceTier(program.id, index, "fromPeople", e.target.value)
+                                        }
+                                        className="w-16 rounded-lg border border-black/10 px-2 py-1 text-sm"
+                                      />
+                                      <span className="text-xs text-neutral-500">إلى</span>
+                                      <input
+                                        type="number"
+                                        value={tier.toPeople}
+                                        onChange={(e) =>
+                                          updatePriceTier(program.id, index, "toPeople", e.target.value)
+                                        }
+                                        className="w-16 rounded-lg border border-black/10 px-2 py-1 text-sm"
+                                      />
+                                      <span className="text-xs text-neutral-500">فرد → السعر للفرد</span>
+                                      <input
+                                        type="number"
+                                        value={tier.price}
+                                        onChange={(e) =>
+                                          updatePriceTier(program.id, index, "price", e.target.value)
+                                        }
+                                        className="w-24 rounded-lg border border-black/10 px-2 py-1 text-sm"
+                                      />
+                                      <button
+                                        onClick={() => removePriceTier(program.id, index)}
+                                        className="rounded-lg px-2 py-1 text-xs font-bold text-red-600 hover:bg-red-50"
+                                      >
+                                        حذف
+                                      </button>
+                                    </div>
+                                  )
+                                )}
+                                <button
+                                  onClick={() => addPriceTier(program.id, kind)}
+                                  className="w-fit rounded-lg border border-black/10 px-3 py-1.5 text-xs font-bold text-neutral-700 hover:bg-white"
+                                >
+                                  + شريحة {TIER_KIND_LABELS[kind]}
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
                 );
               })}
             </tbody>

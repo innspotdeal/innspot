@@ -131,19 +131,20 @@ export default function CorporateProgramDetailView({
         )}
       </div>
 
-      <div className="sticky bottom-0 z-30 border-t border-black/5 bg-white/95 px-4 py-3 backdrop-blur sm:px-8">
+      {!program.isCustom && (
+        <div id="booking" className="relative z-10 bg-white px-4 pt-8 sm:px-8">
+          <BookingForm programs={programs} initialProgramId={program.id} />
+        </div>
+      )}
+
+      {/* زرار الواتساب تحت الحاسبة */}
+      <div className="relative z-10 bg-white px-4 py-6 sm:px-8">
         <WhatsAppButton
           message={t.inquiry(name)}
           label={t.programDetail.inquiryLabel}
           className="w-full py-3.5 text-base"
         />
       </div>
-
-      {!program.isCustom && (
-        <div id="booking" className="relative z-10 bg-white px-4 pt-8 sm:px-8">
-          <BookingForm programs={programs} initialProgramId={program.id} />
-        </div>
-      )}
     </div>
   );
 }

@@ -32,10 +32,11 @@ function parseMarginTiers(value: unknown): MarginTier[] | null {
   const tiers: MarginTier[] = [];
   for (const item of value) {
     const t = item as Record<string, unknown>;
-    const minPeople = Number(t.minPeople);
+    const fromPeople = Number(t.fromPeople);
+    const toPeople = Number(t.toPeople) || 0;
     const margin = Number(t.margin);
-    if (!Number.isFinite(minPeople) || !Number.isFinite(margin)) return null;
-    tiers.push({ minPeople, margin });
+    if (!Number.isFinite(fromPeople) || !Number.isFinite(margin)) return null;
+    tiers.push({ fromPeople, toPeople, margin });
   }
   return tiers;
 }
@@ -59,6 +60,7 @@ export async function PATCH(request: Request) {
         lunchPerPerson: Number(p.lunchPerPerson) || 0,
         ticketsPerPerson: Number(p.ticketsPerPerson) || 0,
         carPrice: Number(p.carPrice) || 0,
+        transportGroup: p.transportGroup === "bus" ? "bus" : "safari",
       });
     }
   }

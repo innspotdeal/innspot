@@ -11,6 +11,7 @@ const emptyPricing: ProgramPricing = {
   lunchPerPerson: 0,
   ticketsPerPerson: 0,
   carPrice: 0,
+  transportGroup: "safari",
 };
 
 export default function AdminPricingView({
@@ -44,7 +45,7 @@ export default function AdminPricingView({
   const [marginTiers, setMarginTiers] = useState<MarginTier[]>(
     initialSettings.marginTiers.length
       ? initialSettings.marginTiers
-      : [{ minPeople: 0, margin: 0 }]
+      : [{ fromPeople: 0, toPeople: 0, margin: 0 }]
   );
 
   const [savingProgram, setSavingProgram] = useState<string | null>(null);
@@ -119,7 +120,7 @@ export default function AdminPricingView({
   }
 
   function addTier() {
-    setMarginTiers((prev) => [...prev, { minPeople: 0, margin: 0 }]);
+    setMarginTiers((prev) => [...prev, { fromPeople: 0, toPeople: 0, margin: 0 }]);
   }
 
   function removeTier(index: number) {
@@ -151,7 +152,7 @@ export default function AdminPricingView({
                 <th className="px-3 py-3 font-bold">فطار/فرد</th>
                 <th className="px-3 py-3 font-bold">غدا/فرد</th>
                 <th className="px-3 py-3 font-bold">تذاكر/فرد</th>
-                <th className="px-3 py-3 font-bold">سعر العربية</th>
+                <th className="px-3 py-3 font-bold">الانتقالات</th>
                 <th className="px-3 py-3 font-bold"></th>
               </tr>
             </thead>
@@ -172,7 +173,7 @@ export default function AdminPricingView({
                 return (
                   <tr key={program.id} className="border-t border-black/5">
                     <td className="px-3 py-3 font-semibold text-brand-blue">{program.name}</td>
-                    {(["breakfastPerPerson", "lunchPerPerson", "ticketsPerPerson", "carPrice"] as const).map(
+                    {(["breakfastPerPerson", "lunchPerPerson", "ticketsPerPerson"] as const).map(
                       (field) => (
                         <td key={field} className="px-3 py-3">
                           <input
@@ -189,6 +190,21 @@ export default function AdminPricingView({
                         </td>
                       )
                     )}
+                    <td className="px-3 py-3">
+                      <select
+                        value={pricing.transportGroup}
+                        onChange={(e) =>
+                          setProgramPricing((prev) => ({
+                            ...prev,
+                            [program.id]: { ...prev[program.id], transportGroup: e.target.value },
+                          }))
+                        }
+                        className="rounded-lg border border-black/10 px-2 py-1 text-sm outline-none focus:border-brand-blue"
+                      >
+                        <option value="safari">عربيات سفاري</option>
+                        <option value="bus">باصات (حسب العدد)</option>
+                      </select>
+                    </td>
                     <td className="px-3 py-3">
                       <button
                         onClick={() => handleSaveProgram(program.id)}
@@ -251,19 +267,30 @@ export default function AdminPricingView({
 
           <div className="mt-6">
             <label className="block text-sm font-semibold text-neutral-700">
-              شرائح هامش الربح (حسب عدد الأفراد)
+              شرائح هامش الربح (من عدد — لعدد — المبلغ المضاف)
             </label>
+            <p className="mt-1 text-xs text-neutral-400">
+              سيب خانة &quot;إلى&quot; بصفر لو الشريحة مالهاش حد أقصى.
+            </p>
             <div className="mt-2 flex flex-col gap-2">
               {marginTiers.map((tier, i) => (
-                <div key={i} className="flex items-center gap-2">
+                <div key={i} className="flex flex-wrap items-center gap-2">
                   <span className="text-sm text-neutral-500">من</span>
                   <input
                     type="number"
-                    value={tier.minPeople}
-                    onChange={(e) => updateTier(i, "minPeople", e.target.value)}
-                    className="w-24 rounded-lg border border-black/10 px-2 py-1 text-sm outline-none focus:border-brand-blue"
+                    value={tier.fromPeople}
+                    onChange={(e) => updateTier(i, "fromPeople", e.target.value)}
+                    className="w-20 rounded-lg border border-black/10 px-2 py-1 text-sm outline-none focus:border-brand-blue"
                   />
-                  <span className="text-sm text-neutral-500">فرد → هامش</span>
+                  <span className="text-sm text-neutral-500">إلى</span>
+                  <input
+                    type="number"
+                    value={tier.toPeople}
+                    onChange={(e) => updateTier(i, "toPeople", e.target.value)}
+                    placeholder="بدون حد"
+                    className="w-20 rounded-lg border border-black/10 px-2 py-1 text-sm outline-none focus:border-brand-blue"
+                  />
+                  <span className="text-sm text-neutral-500">فرد → أضف</span>
                   <input
                     type="number"
                     value={tier.margin}

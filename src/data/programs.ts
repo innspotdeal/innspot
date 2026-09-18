@@ -37,6 +37,9 @@ export type CorporateProgram = {
   // true للبرامج المخصصة بالكامل حسب الطلب (زي برنامج إليت): بيتم إخفاء حاسبة السعر
   // من صفحته وقائمة اختيار البرنامج في حاسبة السعر، لأن مفيش سعر ثابت للفرد
   isCustom: boolean;
+  // true للبرنامج اللي صفحته عبارة عن مكوّن رحلة تفاعلي (Custom Program)
+  // بدل مخطط الرحلة العادي
+  isBuilder: boolean;
 };
 
 const step = (title: string, titleEn: string, detail = "", detailEn = ""): ItineraryStep => ({
@@ -103,6 +106,7 @@ export const corporatePrograms: CorporateProgram[] = [
     includesEn: ["Bus transfers", "Reserve entry tickets", "A trip supervisor"],
     images: ["/images/safari-waterfall.jpg", "/images/lake-boats.jpg", "/images/safari-dunes.jpg"],
     isCustom: false,
+    isBuilder: false,
   },
   {
     id: "classic-safari",
@@ -150,6 +154,7 @@ export const corporatePrograms: CorporateProgram[] = [
     includesEn: ["Safari vehicles", "Reserve entry tickets", "A trip supervisor"],
     images: ["/images/safari-dunes.jpg", "/images/safari-waterfall.jpg", "/images/lake-dramatic.jpg"],
     isCustom: false,
+    isBuilder: false,
   },
   {
     id: "advance-safari",
@@ -197,6 +202,7 @@ export const corporatePrograms: CorporateProgram[] = [
     includesEn: ["Safari vehicles", "Reserve entry tickets", "A trip supervisor"],
     images: ["/images/safari-waterfall.jpg", "/images/lake-boats.jpg", "/images/safari-dunes.jpg"],
     isCustom: false,
+    isBuilder: false,
   },
   {
     id: "magic-lake-camp",
@@ -253,6 +259,7 @@ export const corporatePrograms: CorporateProgram[] = [
     ],
     images: ["/images/safari-dunes.jpg", "/images/lake-dramatic.jpg", "/images/safari-waterfall.jpg"],
     isCustom: true,
+    isBuilder: false,
   },
   {
     id: "elite-program",
@@ -271,5 +278,6 @@ export const corporatePrograms: CorporateProgram[] = [
     includesEn: [],
     images: ["/images/hero.jpg", "/images/lake-dramatic.jpg"],
     isCustom: true,
+    isBuilder: false,
   },
 ];

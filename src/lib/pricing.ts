@@ -2,6 +2,7 @@ import "server-only";
 import { pool } from "@/lib/db";
 import { ADDON_OPTIONS, type AddonKey } from "@/data/addons";
 import { MIN_PEOPLE } from "@/data/booking";
+import { allocateFleet, type Vehicle } from "@/lib/transport";
 
 // ============================================================
 // ملف التسعير — سيرفر فقط (Server Only)
@@ -25,7 +26,9 @@ export type ProgramPricing = {
   breakfastPerPerson: number;
   lunchPerPerson: number;
   ticketsPerPerson: number;
-  carPrice: number; // سعر السيارة الواحدة (تستوعب peoplePerCar أفراد)
+  carPrice: number; // (قديم) سعر السيارة الواحدة — بيتستخدم لو مفيش مركبات متسجلة
+  // أنهي مجموعة مركبات البرنامج بيستخدمها: safari (عربية 6 أفراد) أو bus (باصات حسب العدد)
+  transportGroup: string;
 };
 
 type ProgramPricingRow = {
@@ -34,6 +37,7 @@ type ProgramPricingRow = {
   lunch_per_person: number;
   tickets_per_person: number;
   car_price: number;
+  transport_group: string | null;
 };
 
 function rowToProgramPricing(row: ProgramPricingRow): ProgramPricing {
@@ -42,7 +46,31 @@ function rowToProgramPricing(row: ProgramPricingRow): ProgramPricing {
     lunchPerPerson: Number(row.lunch_per_person),
     ticketsPerPerson: Number(row.tickets_per_person),
     carPrice: Number(row.car_price),
+    transportGroup: row.transport_group ?? "safari",
   };
+}
+
+type VehicleRow = {
+  id: string;
+  name: string;
+  name_en: string;
+  capacity: number;
+  price: number;
+};
+
+// مركبات مجموعة معينة (سفاري/باصات) مرتبة
+export async function listVehicles(group: string): Promise<Vehicle[]> {
+  const result = await pool.query<VehicleRow>(
+    "SELECT id, name, name_en, capacity, price FROM transport_vehicles WHERE vehicle_group=$1 AND active=true ORDER BY capacity ASC",
+    [group]
+  );
+  return result.rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    nameEn: r.name_en,
+    capacity: r.capacity,
+    price: Number(r.price),
+  }));
 }
 
 export async function getProgramPricing(programId: string): Promise<ProgramPricing | null> {
@@ -60,14 +88,22 @@ export async function listProgramPricing(): Promise<Record<string, ProgramPricin
 
 export async function setProgramPricing(programId: string, pricing: ProgramPricing): Promise<void> {
   await pool.query(
-    `INSERT INTO program_pricing (program_id, breakfast_per_person, lunch_per_person, tickets_per_person, car_price)
-     VALUES ($1,$2,$3,$4,$5)
+    `INSERT INTO program_pricing (program_id, breakfast_per_person, lunch_per_person, tickets_per_person, car_price, transport_group)
+     VALUES ($1,$2,$3,$4,$5,$6)
      ON CONFLICT (program_id) DO UPDATE SET
        breakfast_per_person = EXCLUDED.breakfast_per_person,
        lunch_per_person = EXCLUDED.lunch_per_person,
        tickets_per_person = EXCLUDED.tickets_per_person,
-       car_price = EXCLUDED.car_price`,
-    [programId, pricing.breakfastPerPerson, pricing.lunchPerPerson, pricing.ticketsPerPerson, pricing.carPrice]
+       car_price = EXCLUDED.car_price,
+       transport_group = EXCLUDED.transport_group`,
+    [
+      programId,
+      pricing.breakfastPerPerson,
+      pricing.lunchPerPerson,
+      pricing.ticketsPerPerson,
+      pricing.carPrice,
+      pricing.transportGroup || "safari",
+    ]
   );
 }
 
@@ -84,15 +120,17 @@ export async function setAddonPrice(key: string, price: number): Promise<void> {
   );
 }
 
-export type MarginTier = { minPeople: number; margin: number };
+// شريحة هامش الربح: من عدد كذا لعدد كذا → المبلغ المضاف
+// toPeople = 0 معناها "وما فوق" (مفيش حد أقصى)
+export type MarginTier = { fromPeople: number; toPeople: number; margin: number };
 export type PricingSettings = { peoplePerCar: number; marginTiers: MarginTier[] };
 
 const DEFAULT_SETTINGS: PricingSettings = {
   peoplePerCar: 6,
   marginTiers: [
-    { minPeople: 32, margin: 15000 },
-    { minPeople: 26, margin: 10000 },
-    { minPeople: 20, margin: 7000 },
+    { fromPeople: 20, toPeople: 25, margin: 7000 },
+    { fromPeople: 26, toPeople: 31, margin: 10000 },
+    { fromPeople: 32, toPeople: 0, margin: 15000 },
   ],
 };
 
@@ -116,9 +154,10 @@ export async function setPricingSettings(settings: PricingSettings): Promise<voi
 }
 
 function getProfitMargin(people: number, tiers: MarginTier[]): number {
-  const sorted = [...tiers].sort((a, b) => b.minPeople - a.minPeople);
-  for (const tier of sorted) {
-    if (people >= tier.minPeople) return tier.margin;
+  for (const tier of tiers) {
+    const aboveMin = people >= tier.fromPeople;
+    const belowMax = tier.toPeople <= 0 || people <= tier.toPeople;
+    if (aboveMin && belowMax) return tier.margin;
   }
   return 0;
 }
@@ -163,8 +202,13 @@ export async function calculatePrice({
   const mealsAndTicketsPerPerson =
     pricing.breakfastPerPerson + pricing.lunchPerPerson + pricing.ticketsPerPerson;
 
-  const carsNeeded = Math.ceil(people / settings.peoplePerCar);
-  const carsCost = carsNeeded * pricing.carPrice;
+  // تكلفة الانتقالات: بتتحسب من المركبات المسجلة حسب مجموعة البرنامج
+  // (السفاري عربية 6 أفراد بسعر ثابت، والباصات نوعها بيتحدد حسب العدد)
+  const vehicles = await listVehicles(pricing.transportGroup || "safari");
+  const carsCost =
+    vehicles.length > 0
+      ? allocateFleet(people, vehicles).total
+      : Math.ceil(people / settings.peoplePerCar) * pricing.carPrice;
 
   const addonsCost = addons.reduce((sum, key) => sum + (addonPrices[key] ?? 0), 0);
 

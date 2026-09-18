@@ -9,6 +9,8 @@ const TABS = [
   { href: "/admin/hotels", label: "الفنادق" },
   { href: "/admin/activities", label: "الأنشطة" },
   { href: "/admin/programs", label: "برامج الشركات" },
+  { href: "/admin/custom-trip", label: "البرنامج المخصّص" },
+  { href: "/admin/transport", label: "الانتقالات" },
   { href: "/admin/pricing", label: "التسعير" },
 ];
 

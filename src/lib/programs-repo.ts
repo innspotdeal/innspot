@@ -19,6 +19,7 @@ type ProgramRow = {
   includes_en: string[];
   images: string[];
   is_custom: boolean;
+  is_builder: boolean;
 };
 
 function rowToProgram(row: ProgramRow): CorporateProgram {
@@ -37,6 +38,7 @@ function rowToProgram(row: ProgramRow): CorporateProgram {
     includesEn: row.includes_en ?? [],
     images: row.images ?? [],
     isCustom: row.is_custom,
+    isBuilder: row.is_builder ?? false,
   };
 }
 

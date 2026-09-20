@@ -2,6 +2,9 @@
 // السفاري: عربية بسعة 6 وسعر ثابت للعربية مهما كان اللي فيها
 // الباصات: النوع بيتحدد أوتوماتيك حسب العدد (هاي إس / كوستر / ميني باص / باص)
 // الأسعار اللي هنا مبدئية — تتعدل كلها من /admin/transport
+//
+// ⚠️ السكريبت بيضيف المركبات الناقصة بس، ومش بيلمس أي إعداد موجود —
+// اختيار الباص/السفاري لكل برنامج بيتحدد من /admin/pricing
 // تشغيل: DATABASE_URL="..." node scripts/transport-migration.mjs
 import pg from "pg";
 
@@ -62,13 +65,6 @@ async function main() {
     console.log(`تمت إضافة ${VEHICLES.length} مركبة (أسعار الباصات لسه 0 — تتحط من اللوحة).`);
   }
 
-  // برامج الباص بتستخدم مجموعة الباصات
-  await pool.query(
-    "UPDATE program_pricing SET transport_group='bus' WHERE program_id IN ('innspot-classic')"
-  );
-  await pool.query(
-    "UPDATE program_pricing SET transport_group='safari' WHERE program_id IN ('classic-safari')"
-  );
 
   console.log("تم بنجاح.");
   await pool.end();

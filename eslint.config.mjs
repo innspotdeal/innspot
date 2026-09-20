@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // ملفات AppleDouble اللي بيعملها macOS على الهاردات الخارجية (exFAT) —
+    // مش كود، ومتجاهلة في .gitignore أصلًا
+    "**/._*",
   ]),
 ]);
 

@@ -1,7 +1,9 @@
-// ترحيل برامج الشركات لمخطط رحلة منظّم (خطوة + تفصيلها) + وقت تحرك/عودة
-// - بيضيف أعمدة: itinerary (jsonb) و start_time و end_time
-// - بيحدّث محتوى البرامج من src/data/programs.ts (المصدر الوحيد للمحتوى)
-// - بيحذف أي برنامج قديم مش موجود في الملف (زي advance-program بعد ما بقى مكرر)
+// تجهيز أعمدة برامج الشركات + إضافة أي برنامج ناقص من src/data/programs.ts
+//
+// ⚠️ لوحة الأدمن هي المصدر الوحيد للحقيقة:
+// السكريبت ده بيجهّز الأعمدة بس، وبيزرع البرامج لو الجدول فاضي تمامًا (قاعدة جديدة).
+// لو فيه برامج موجودة، مش بيلمس حاجة خالص — لا بيعدّل ولا بيضيف ولا بيحذف —
+// عشان أي تعديل أو حذف تعمله من اللوحة يفضل زي ما هو.
 // تشغيل: DATABASE_URL="..." node scripts/programs-itinerary-migration.mjs
 import pg from "pg";
 import { corporatePrograms } from "../src/data/programs.ts";
@@ -28,34 +30,17 @@ async function main() {
       ADD COLUMN IF NOT EXISTS is_builder BOOLEAN NOT NULL DEFAULT false;
   `);
 
-  for (const p of corporatePrograms) {
-    const exists = await pool.query("SELECT 1 FROM corporate_programs WHERE id=$1", [p.id]);
+  const { rows } = await pool.query("SELECT COUNT(*)::int AS c FROM corporate_programs");
+  if (rows[0].c > 0) {
+    console.log(`فيه ${rows[0].c} برنامج بالفعل — اللوحة هي المصدر، مش هيتلمس حاجة.`);
+    console.log("تم بنجاح.");
+    await pool.end();
+    return;
+  }
 
-    if (exists.rowCount) {
-      // مش بنلمس start_time/end_time لو الأدمن ظبّطهم من اللوحة قبل كده
-      await pool.query(
-        `UPDATE corporate_programs
-         SET name=$2, name_en=$3, description=$4, description_en=$5,
-             itinerary=$6, duration=$7, duration_en=$8, includes=$9, includes_en=$10,
-             is_custom=$11, is_builder=$12, highlights='{}', highlights_en='{}'
-         WHERE id=$1`,
-        [
-          p.id,
-          p.name,
-          p.nameEn,
-          p.description,
-          p.descriptionEn,
-          JSON.stringify(p.itinerary),
-          p.duration,
-          p.durationEn,
-          p.includes,
-          p.includesEn,
-          p.isCustom,
-          p.isBuilder,
-        ]
-      );
-      console.log(`تم تحديث: ${p.id}`);
-    } else {
+  console.log("الجدول فاضي — بيزرع البرامج الأساسية...");
+  for (const p of corporatePrograms) {
+    {
       await pool.query(
         `INSERT INTO corporate_programs
           (id, name, name_en, description, description_en, highlights, highlights_en,
@@ -85,13 +70,6 @@ async function main() {
     }
   }
 
-  // حذف أي برنامج قديم مبقاش موجود في ملف المحتوى
-  const keepIds = corporatePrograms.map((p) => p.id);
-  const removed = await pool.query(
-    `DELETE FROM corporate_programs WHERE id <> ALL($1::text[]) RETURNING id`,
-    [keepIds]
-  );
-  removed.rows.forEach((r) => console.log(`تم حذف: ${r.id}`));
 
   console.log("تم بنجاح.");
   await pool.end();

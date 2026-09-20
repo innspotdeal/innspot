@@ -1,4 +1,7 @@
 // فصل الانتقالات: كل برنامج ممكن يحتاج باص (يوصّلهم) وعربيات سفاري (للصحراء) — الاتنين مع بعض
+//
+// ⚠️ بيضيف الأعمدة بس. نقل البيانات القديمة اتعمل مرة واحدة وخلاص،
+// والاختيارات بقت بتتحدد من /admin/pricing
 // تشغيل: DATABASE_URL="..." node scripts/transport-split-migration.mjs
 import pg from "pg";
 
@@ -21,12 +24,6 @@ async function main() {
       ADD COLUMN IF NOT EXISTS needs_safari BOOLEAN NOT NULL DEFAULT false;
   `);
 
-  // تحويل الاختيار القديم الواحد: اللي كان "safari" بقى محتاج الاتنين
-  // (الباص بيوصّلهم، والعربيات للصحراء)، واللي كان "bus" محتاج الباص بس
-  await pool.query(`
-    UPDATE program_pricing
-    SET needs_bus = true, needs_safari = (transport_group = 'safari');
-  `);
 
   const { rows } = await pool.query(
     "SELECT program_id, needs_bus, needs_safari FROM program_pricing ORDER BY program_id"

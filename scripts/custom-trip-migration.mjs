@@ -1,5 +1,8 @@
-// إنشاء جدول خيارات البرنامج المخصّص + إضافة البرنامج نفسه لقائمة رحلات الشركات
+// إنشاء جدول خيارات البرنامج المخصّص
 // الأسعار والأماكن اللي جوه دي أمثلة مبدئية — تتعدل كلها من /admin/custom-trip
+//
+// ⚠️ لوحة الأدمن هي المصدر الوحيد للحقيقة: السكريبت بيزرع الأمثلة لو الجدول
+// فاضي تمامًا بس، ومش بيرجّع أي حاجة اتمسحت من اللوحة.
 // تشغيل: DATABASE_URL="..." node scripts/custom-trip-migration.mjs
 import pg from "pg";
 
@@ -98,30 +101,13 @@ async function main() {
     }
   }
 
-  // البرنامج نفسه في قائمة رحلات الشركات
+  // ⚠️ البرنامج نفسه مش بيتضاف من هنا:
+  // لوحة الأدمن هي المصدر الوحيد للحقيقة، فلو اتمسح من اللوحة يفضل متشال.
+  // على قاعدة بيانات جديدة (جدول البرامج فاضي) بيتزرع من
+  // scripts/programs-itinerary-migration.mjs مع باقي البرامج.
   const exists = await pool.query("SELECT 1 FROM corporate_programs WHERE id='custom-program'");
-  if (exists.rowCount) {
-    await pool.query("UPDATE corporate_programs SET is_builder=true WHERE id='custom-program'");
-    console.log("برنامج كاستم موجود بالفعل — تم تفعيل وضع المكوّن.");
-  } else {
-    await pool.query(
-      `INSERT INTO corporate_programs
-        (id, name, name_en, description, description_en, highlights, highlights_en,
-         duration, duration_en, includes, includes_en, images, is_custom, itinerary,
-         is_builder, sort_order)
-       VALUES ('custom-program', $1, $2, $3, $4, '{}', '{}', $5, $6, '{}', '{}', $7, true, '[]', true,
-         (SELECT COALESCE(MAX(sort_order),0)+1 FROM corporate_programs))`,
-      [
-        "برنامج كاستم",
-        "Custom Program",
-        "ركّب رحلتك بنفسك: اختار المبيت أو الداي يوز، مكان الفطار وأصنافه، تفاصيل رحلة السفاري، مكان الغداء، والإضافات — والسعر بيتحدّث معاك خطوة بخطوة.",
-        "Build your own trip: choose an overnight stay or a day use, the breakfast spot and its dishes, your safari details, the lunch spot, and the extras — with the price updating as you go.",
-        "حسب اختيارك",
-        "Based on your choices",
-        ["/images/safari-dunes.jpg", "/images/lake-dramatic.jpg"],
-      ]
-    );
-    console.log("تمت إضافة برنامج كاستم.");
+  if (!exists.rowCount) {
+    console.log("برنامج كاستم مش موجود — مش هيترجع تلقائي (يتضاف من اللوحة لو محتاجه).");
   }
 
   console.log("تم بنجاح.");

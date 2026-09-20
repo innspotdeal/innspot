@@ -157,63 +157,6 @@ export const corporatePrograms: CorporateProgram[] = [
     isBuilder: false,
   },
   {
-    id: "magic-lake-camp",
-    name: "برنامج رحلة كامب الماجيك ليك",
-    nameEn: "Magic Lake Camp Trip",
-    description:
-      "رحلة يومين بمبيت في كامب الماجيك ليك: اليوم الأول ركوب مركب وساند بورد وعشاء وكامب فاير وسط الصحراء، واليوم التاني شروق وإفطار ريفي وجبل المدورة والشلالات وجولة في قرية تونس وورش الفخار.",
-    descriptionEn:
-      "A two-day trip with an overnight stay at Magic Lake Camp: day one brings a boat ride, sandboarding, dinner, and a campfire in the desert; day two brings the sunrise, a rustic breakfast, Al-Madawra Mountain, the waterfalls, and a tour of Tunis Village and its pottery workshops.",
-    itinerary: [
-      step("اليوم الأول — الوصول إلى كامب الماجيك ليك", "Day one — arriving at Magic Lake Camp"),
-      step("استلام الخيام الخاصة بالجروب", "Receiving the group's tents"),
-      step("المشاركة في تجهيز الكامب والاستراحة", "Helping set up the camp, then resting"),
-      step("ركوب المركب", "A boat ride"),
-      step("ساند بورد", "Sandboarding"),
-      step("العشاء", "Dinner", "فراخ + بطاطس + أرز + طحينة + سلطة", "Chicken + potatoes + rice + tahini + salad"),
-      step(
-        "كامب فاير وقعدة سمر",
-        "Campfire and an evening gathering",
-        "شوي مارشميلو + شاي بدوي",
-        "Grilled marshmallows + bedouin tea"
-      ),
-      step("اليوم التاني — مشاهدة الشروق داخل الكامب", "Day two — watching the sunrise from the camp"),
-      step(
-        "الإفطار الريفي داخل الكامب",
-        "A rustic breakfast at the camp",
-        "فطير مشلتت + عسل + جبنة بخضار",
-        "Feteer meshaltet + honey + cheese with vegetables"
-      ),
-      step("جبل المدورة", "Al-Madawra Mountain", "الصعود إلى أعلى الجبل", "Climbing to the top of the mountain"),
-      step("زيارة الشلالات", "Visiting the waterfalls"),
-      step(
-        "قرية تونس",
-        "Tunis Village",
-        "جولة حرة داخل القرية وزيارة ورش ومدارس الفخار — وإمكانية تجربة عمل قطع فخار بتكلفة إضافية",
-        "Free time in the village and a visit to the pottery workshops and schools — a hands-on pottery session is available at extra cost"
-      ),
-    ],
-    startTime: "",
-    endTime: "",
-    duration: "يومين — مبيت ليلة في الكامب",
-    durationEn: "Two days — one night at the camp",
-    includes: [
-      "الخيام والمبيت في الكامب",
-      "العشاء وإفطار اليوم التاني",
-      "ركوب المركب والساند بورد",
-      "كامب فاير وشاي بدوي",
-    ],
-    includesEn: [
-      "Tents and the overnight stay",
-      "Dinner and day-two breakfast",
-      "Boat ride and sandboarding",
-      "Campfire and bedouin tea",
-    ],
-    images: ["/images/safari-dunes.jpg", "/images/lake-dramatic.jpg", "/images/safari-waterfall.jpg"],
-    isCustom: true,
-    isBuilder: false,
-  },
-  {
     id: "custom-program",
     name: "برنامج كاستم",
     nameEn: "Custom Program",

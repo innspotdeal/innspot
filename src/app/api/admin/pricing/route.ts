@@ -64,6 +64,8 @@ export async function PATCH(request: Request) {
         ticketsPerPerson: Number(p.ticketsPerPerson) || 0,
         carPrice: Number(p.carPrice) || 0,
         transportGroup: p.transportGroup === "bus" ? "bus" : "safari",
+        needsBus: p.needsBus === undefined ? true : Boolean(p.needsBus),
+        needsSafari: Boolean(p.needsSafari),
       });
     }
   }

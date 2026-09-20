@@ -19,6 +19,8 @@ const emptyPricing: ProgramPricing = {
   ticketsPerPerson: 0,
   carPrice: 0,
   transportGroup: "safari",
+  needsBus: true,
+  needsSafari: false,
 };
 
 export default function AdminPricingView({
@@ -222,19 +224,34 @@ export default function AdminPricingView({
                       </button>
                     </td>
                     <td className="px-3 py-3">
-                      <select
-                        value={pricing.transportGroup}
-                        onChange={(e) =>
-                          setProgramPricing((prev) => ({
-                            ...prev,
-                            [program.id]: { ...prev[program.id], transportGroup: e.target.value },
-                          }))
-                        }
-                        className="rounded-lg border border-black/10 px-2 py-1 text-sm outline-none focus:border-brand-blue"
-                      >
-                        <option value="safari">عربيات سفاري</option>
-                        <option value="bus">باصات (حسب العدد)</option>
-                      </select>
+                      <div className="flex flex-col gap-1">
+                        <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700">
+                          <input
+                            type="checkbox"
+                            checked={pricing.needsBus}
+                            onChange={(e) =>
+                              setProgramPricing((prev) => ({
+                                ...prev,
+                                [program.id]: { ...prev[program.id], needsBus: e.target.checked },
+                              }))
+                            }
+                          />
+                          باص (اختياري للعميل)
+                        </label>
+                        <label className="flex items-center gap-2 text-xs font-semibold text-neutral-700">
+                          <input
+                            type="checkbox"
+                            checked={pricing.needsSafari}
+                            onChange={(e) =>
+                              setProgramPricing((prev) => ({
+                                ...prev,
+                                [program.id]: { ...prev[program.id], needsSafari: e.target.checked },
+                              }))
+                            }
+                          />
+                          عربيات سفاري
+                        </label>
+                      </div>
                     </td>
                     <td className="px-3 py-3">
                       <button

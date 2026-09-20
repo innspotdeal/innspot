@@ -67,7 +67,7 @@ async function main() {
     "UPDATE program_pricing SET transport_group='bus' WHERE program_id IN ('innspot-classic')"
   );
   await pool.query(
-    "UPDATE program_pricing SET transport_group='safari' WHERE program_id IN ('classic-safari','advance-safari')"
+    "UPDATE program_pricing SET transport_group='safari' WHERE program_id IN ('classic-safari')"
   );
 
   console.log("تم بنجاح.");

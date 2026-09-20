@@ -157,54 +157,6 @@ export const corporatePrograms: CorporateProgram[] = [
     isBuilder: false,
   },
   {
-    id: "advance-safari",
-    name: "برنامج رحلة السفاري — غداء الكامب",
-    nameEn: "Safari Trip — Camp Lunch",
-    description:
-      "نفس مكونات رحلة السفاري، لكن الغداء بيتقدم في كامب الماجيك ليك وسط أجواء الطبيعة بدل الرجوع لواحة الزاواي.",
-    descriptionEn:
-      "The same components as the Safari Trip, but lunch is served at Magic Lake Camp amid nature instead of returning to Zawya Oasis.",
-    itinerary: [
-      step(
-        "الإفطار في واحة الزاواي",
-        "Breakfast at Zawya Oasis",
-        "فطير مشلتت + عسل + جبنة + مش فلاحي",
-        "Feteer meshaltet + honey + cheese + farm mish"
-      ),
-      step(
-        "التحرك إلى محمية وادي الريان بسيارات السفاري",
-        "Heading to the Wadi El Rayan reserve by safari vehicles"
-      ),
-      step("مغامرة بسيارات الدفع الرباعي وسط الكثبان الرملية", "A 4x4 adventure among the sand dunes"),
-      step("التزلج على الرمال (Sandboarding)", "Sandboarding"),
-      step("زيارة شلالات وادي الريان", "Visiting the Wadi El Rayan waterfalls"),
-      step(
-        "التوقف عند نقطة الـ View",
-        "Stopping at the view point",
-        "إطلالة بانورامية رائعة",
-        "A wonderful panoramic view"
-      ),
-      step("زيارة البحيرة السحرية (Magic Lake)", "Visiting the Magic Lake"),
-      step("تجربة الشاي البدوي بجوار البحيرة", "A bedouin tea experience by the lake"),
-      step(
-        "الغداء في كامب الماجيك ليك",
-        "Lunch at Magic Lake Camp",
-        "ربع فرخة + أرز + بطاطس + سلطة عربي + طحينة + عيش",
-        "Quarter chicken + rice + potatoes + arabic salad + tahini + bread"
-      ),
-      step("جلسة كامب فاير", "Campfire session", "أجواء بدوية مميزة", "A distinctive bedouin atmosphere"),
-    ],
-    startTime: "",
-    endTime: "",
-    duration: "يوم كامل",
-    durationEn: "A full day",
-    includes: ["سيارات السفاري", "تذاكر دخول المحمية", "مشرف الرحلة"],
-    includesEn: ["Safari vehicles", "Reserve entry tickets", "A trip supervisor"],
-    images: ["/images/safari-waterfall.jpg", "/images/lake-boats.jpg", "/images/safari-dunes.jpg"],
-    isCustom: false,
-    isBuilder: false,
-  },
-  {
     id: "magic-lake-camp",
     name: "برنامج رحلة كامب الماجيك ليك",
     nameEn: "Magic Lake Camp Trip",
@@ -280,24 +232,5 @@ export const corporatePrograms: CorporateProgram[] = [
     isCustom: true,
     // صفحته مكوّن رحلة تفاعلي مش مخطط عادي
     isBuilder: true,
-  },
-  {
-    id: "elite-program",
-    name: "برنامج إليت (كستميز)",
-    nameEn: "Elite Program (Customize)",
-    description:
-      "برنامج إليت (كستميز) مصمم خصيصًا حسب رغبتكم، بمرونة كاملة تشمل إمكانية تغيير أماكن الإفطار والغداء حسب الاختيار. برنامج مثالي لفعاليات الريتريت الجماعية، ويمكن أيضًا تصميمه لمن يرغبون في المبيت أو التخييم الليلي.",
-    descriptionEn:
-      "The Elite Program (Customize) is designed especially according to your preferences, with full flexibility including the ability to change the breakfast and lunch locations of your choice. An ideal program for group retreat events, and can also be designed for those who wish to stay overnight or camp.",
-    itinerary: [],
-    startTime: "",
-    endTime: "",
-    duration: "مرن حسب تصميم البرنامج",
-    durationEn: "Flexible, based on the custom program design",
-    includes: [],
-    includesEn: [],
-    images: ["/images/hero.jpg", "/images/lake-dramatic.jpg"],
-    isCustom: true,
-    isBuilder: false,
   },
 ];

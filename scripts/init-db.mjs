@@ -25,9 +25,7 @@ const pool = new Pool({
 // بنستخدمها هنا مرة واحدة بس عشان نعمل seed أولي لقاعدة البيانات
 const LEGACY_PROGRAM_PRICING = {
   "innspot-classic": { breakfastPerPerson: 75, lunchPerPerson: 150, ticketsPerPerson: 25, carPrice: 3000 },
-  "advance-program": { breakfastPerPerson: 75, lunchPerPerson: 150, ticketsPerPerson: 25, carPrice: 3000 },
   "classic-safari": { breakfastPerPerson: 75, lunchPerPerson: 150, ticketsPerPerson: 25, carPrice: 3000 },
-  "advance-safari": { breakfastPerPerson: 75, lunchPerPerson: 150, ticketsPerPerson: 25, carPrice: 3000 },
 };
 const LEGACY_ADDON_PRICES = { bedouinBand: 3500, fireShow: 3000, mizmarReception: 1500 };
 const LEGACY_MARGIN_TIERS = [

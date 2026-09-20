@@ -27,8 +27,12 @@ export type ProgramPricing = {
   lunchPerPerson: number;
   ticketsPerPerson: number;
   carPrice: number; // (قديم) سعر السيارة الواحدة — بيتستخدم لو مفيش مركبات متسجلة
-  // أنهي مجموعة مركبات البرنامج بيستخدمها: safari (عربية 6 أفراد) أو bus (باصات حسب العدد)
+  // (قديم) الاختيار الواحد — اتقسم لـ needsBus و needsSafari
   transportGroup: string;
+  // البرنامج محتاج باص يوصّل المجموعة؟ (ده اللي العميل يقدر يشيله لو جاي بمواصلاته)
+  needsBus: boolean;
+  // البرنامج فيه جزء سفاري محتاج عربيات دفع رباعي؟ (جزء من الرحلة نفسها)
+  needsSafari: boolean;
 };
 
 type ProgramPricingRow = {
@@ -38,6 +42,8 @@ type ProgramPricingRow = {
   tickets_per_person: number;
   car_price: number;
   transport_group: string | null;
+  needs_bus: boolean | null;
+  needs_safari: boolean | null;
 };
 
 function rowToProgramPricing(row: ProgramPricingRow): ProgramPricing {
@@ -47,6 +53,8 @@ function rowToProgramPricing(row: ProgramPricingRow): ProgramPricing {
     ticketsPerPerson: Number(row.tickets_per_person),
     carPrice: Number(row.car_price),
     transportGroup: row.transport_group ?? "safari",
+    needsBus: row.needs_bus ?? true,
+    needsSafari: row.needs_safari ?? row.transport_group === "safari",
   };
 }
 
@@ -154,14 +162,16 @@ export async function listProgramPricing(): Promise<Record<string, ProgramPricin
 
 export async function setProgramPricing(programId: string, pricing: ProgramPricing): Promise<void> {
   await pool.query(
-    `INSERT INTO program_pricing (program_id, breakfast_per_person, lunch_per_person, tickets_per_person, car_price, transport_group)
-     VALUES ($1,$2,$3,$4,$5,$6)
+    `INSERT INTO program_pricing (program_id, breakfast_per_person, lunch_per_person, tickets_per_person, car_price, transport_group, needs_bus, needs_safari)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
      ON CONFLICT (program_id) DO UPDATE SET
        breakfast_per_person = EXCLUDED.breakfast_per_person,
        lunch_per_person = EXCLUDED.lunch_per_person,
        tickets_per_person = EXCLUDED.tickets_per_person,
        car_price = EXCLUDED.car_price,
-       transport_group = EXCLUDED.transport_group`,
+       transport_group = EXCLUDED.transport_group,
+       needs_bus = EXCLUDED.needs_bus,
+       needs_safari = EXCLUDED.needs_safari`,
     [
       programId,
       pricing.breakfastPerPerson,
@@ -169,6 +179,8 @@ export async function setProgramPricing(programId: string, pricing: ProgramPrici
       pricing.ticketsPerPerson,
       pricing.carPrice,
       pricing.transportGroup || "safari",
+      pricing.needsBus,
+      pricing.needsSafari,
     ]
   );
 }
@@ -278,13 +290,22 @@ export async function calculatePrice({
 
   // تكلفة الانتقالات: بتتحسب من المركبات المسجلة حسب مجموعة البرنامج
   // (السفاري عربية 6 أفراد بسعر ثابت، والباصات نوعها بيتحدد حسب العدد)
+  // الباص والسفاري منفصلين تمامًا — رحلة السفاري محتاجة الاتنين:
+  // باص يوصّلهم الفيوم، وعربيات دفع رباعي للصحراء
   let carsCost = 0;
-  if (includeTransport) {
-    const vehicles = await listVehicles(pricing.transportGroup || "safari");
-    carsCost =
-      vehicles.length > 0
-        ? allocateFleet(people, vehicles).total
-        : Math.ceil(people / settings.peoplePerCar) * pricing.carPrice;
+
+  // الباص بس هو اللي العميل يقدر يشيله (لو جاي بمواصلاته)
+  if (pricing.needsBus && includeTransport) {
+    const busVehicles = await listVehicles("bus");
+    carsCost += busVehicles.length
+      ? allocateFleet(people, busVehicles).total
+      : Math.ceil(people / settings.peoplePerCar) * pricing.carPrice;
+  }
+
+  // عربيات السفاري جزء من الرحلة نفسها، مش اختيارية
+  if (pricing.needsSafari) {
+    const safariVehicles = await listVehicles("safari");
+    carsCost += safariVehicles.length ? allocateFleet(people, safariVehicles).total : 0;
   }
 
   const addonsCost = addons.reduce((sum, key) => sum + (addonPrices[key] ?? 0), 0);

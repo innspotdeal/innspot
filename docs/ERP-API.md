@@ -91,7 +91,8 @@ GET /api/admin/ping
 - **الـ `PATCH` جزئي**: الحقول اللي تبعتها بس هي اللي بتتغير.
 - **ترتيب الصور مهم**: أول صورة في `images[]` هي صورة الغلاف.
 - **`PATCH /api/admin/pricing`** بياخد أي مجموعة من `programPricing` /
-  `programTiers` / `addonPrices` / `settings`، وبيحدّث اللي بعته بس.
+  `programTiers` / `programAddons` / `settings`، وبيحدّث اللي بعته بس.
+  جوه كل قسم، البرنامج اللي بتبعته **بيتستبدل بالكامل** (شرائحه كلها، أو إعدادات إضافاته كلها).
 - **رفع الصور** `multipart/form-data` بحقل اسمه `file`. الحد 8 ميجا،
   والأنواع: jpeg / png / webp / avif / gif. بيرجّع `{"ok": true, "url": "..."}`
   والرابط ده هو اللي بتحطه في `images[]`.
@@ -103,17 +104,37 @@ GET /api/admin/ping
 ```json
 {
   "programTiers": {
-    "innspot-classic": {
-      "breakfast": [
-        { "fromPeople": 10, "toPeople": 19, "price": 90 },
-        { "fromPeople": 20, "toPeople": 0,  "price": 75 }
-      ]
-    }
+    "innspot-classic": [
+      { "kind": "breakfast", "fromPeople": 10, "toPeople": 19, "price": 90 },
+      { "kind": "breakfast", "fromPeople": 20, "toPeople": 0,  "price": 75 }
+    ]
   }
 }
 ```
 
 نفس القاعدة في `settings.marginTiers` بس بـ `margin` بدل `price`.
+
+### الإضافات
+
+قايمة واحدة لكل البرامج — هي نفسها خيارات الكاستم بنوع `addon`، فالإضافة والحذف
+وتغيير السعر بيتعملوا من `/api/admin/custom-trip`.
+
+كل برنامج بيحدد لكل إضافة وضع:
+
+| الوضع | المعنى |
+|---|---|
+| `available` | متاحة كإضافة يختارها العميل (الافتراضي — مش بيتخزن) |
+| `included` | مشمولة في سعر البرنامج: بتتحسب دايمًا ومش بتظهر كاختيار |
+| `hidden` | مش متاحة في البرنامج ده |
+
+`GET /api/admin/pricing` بيرجّع `addons` (القايمة بأسعارها) و `programAddons`
+(`included` و `hidden` بس). وللتعديل:
+
+```json
+{ "programAddons": { "classic-safari": { "add-boat": "available", "add-sandboard": "hidden" } } }
+```
+
+`addonPrices` اتلغت — لو اتبعتت بترجع `400`.
 
 ### الانتقالات
 
@@ -149,7 +170,8 @@ const url = await erp.uploadImage(file, "villa.jpg");
 await erp.villas.update(villa.id, { images: [url, ...villa.images] });
 
 const pricing = await erp.pricing.get();
-await erp.pricing.update({ addonPrices: { fireShow: 3500 } });
+await erp.customTrip.update("add-fire-show", { price: 3500 });
+await erp.pricing.update({ programAddons: { "classic-safari": { "add-boat": "included" } } });
 ```
 
 الأخطاء بترجع كـ `InnspotError` فيها `status` و `message` و `path`.

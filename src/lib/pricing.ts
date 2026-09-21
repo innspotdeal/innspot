@@ -1,8 +1,8 @@
 import "server-only";
 import { pool } from "@/lib/db";
-import { ADDON_OPTIONS, type AddonKey } from "@/data/addons";
 import { MIN_PEOPLE } from "@/data/booking";
 import { allocateFleet, type Vehicle } from "@/lib/transport";
+import { addonTotal, getProgramAddons } from "@/lib/program-addons";
 
 // ============================================================
 // ملف التسعير — سيرفر فقط (Server Only)
@@ -17,10 +17,6 @@ import { allocateFleet, type Vehicle } from "@/lib/transport";
 
 // أقل عدد أفراد مسموح به للحجز — مصدره الوحيد data/booking.ts
 export { MIN_PEOPLE } from "@/data/booking";
-
-export function isValidAddonKey(key: string): key is AddonKey {
-  return ADDON_OPTIONS.some((opt) => opt.key === key);
-}
 
 export type ProgramPricing = {
   breakfastPerPerson: number;
@@ -185,19 +181,6 @@ export async function setProgramPricing(programId: string, pricing: ProgramPrici
   );
 }
 
-export async function getAddonPrices(): Promise<Record<string, number>> {
-  const result = await pool.query<{ key: string; price: number }>("SELECT * FROM addon_prices");
-  return Object.fromEntries(result.rows.map((row) => [row.key, Number(row.price)]));
-}
-
-export async function setAddonPrice(key: string, price: number): Promise<void> {
-  await pool.query(
-    `INSERT INTO addon_prices (key, price) VALUES ($1,$2)
-     ON CONFLICT (key) DO UPDATE SET price = EXCLUDED.price`,
-    [key, price]
-  );
-}
-
 // شريحة هامش الربح: من عدد كذا لعدد كذا → المبلغ المضاف
 // toPeople = 0 معناها "وما فوق" (مفيش حد أقصى)
 export type MarginTier = { fromPeople: number; toPeople: number; margin: number };
@@ -243,7 +226,8 @@ function getProfitMargin(people: number, tiers: MarginTier[]): number {
 export type CalculatePriceInput = {
   programId: string;
   people: number;
-  addons: AddonKey[];
+  // معرّفات الإضافات اللي العميل اختارها — أي حاجة مش متاحة للبرنامج بتتجاهل
+  addons: string[];
   // الانتقالات اختيارية — العميل ممكن ييجي بمواصلاته
   includeTransport?: boolean;
 };
@@ -253,6 +237,9 @@ export type CalculatePriceResult =
       ok: true;
       pricePerPerson: number;
       total: number;
+      // أسماء الإضافات اللي اتحسبت فعلًا (المشمولة + المختارة)
+      includedAddons: { name: string; nameEn: string }[];
+      selectedAddons: { name: string; nameEn: string }[];
     }
   | {
       ok: false;
@@ -278,7 +265,10 @@ export async function calculatePrice({
     return { ok: false, error: `الحد الأدنى للحجز ${MIN_PEOPLE} فرد` };
   }
 
-  const [settings, addonPrices] = await Promise.all([getPricingSettings(), getAddonPrices()]);
+  const [settings, programAddons] = await Promise.all([
+    getPricingSettings(),
+    getProgramAddons(programId),
+  ]);
 
   // الأسعار بتتاخد من الشرائح حسب العدد، ولو مفيش شرائح بنرجع للسعر الثابت القديم
   const tiers = await listProgramTiers(programId);
@@ -308,7 +298,12 @@ export async function calculatePrice({
     carsCost += safariVehicles.length ? allocateFleet(people, safariVehicles).total : 0;
   }
 
-  const addonsCost = addons.reduce((sum, key) => sum + (addonPrices[key] ?? 0), 0);
+  // المشمولة بتتحسب دايمًا، والمختارة بس لو متاحة فعلًا في البرنامج ده
+  const chosen = programAddons.available.filter((o) => addons.includes(o.id));
+  const addonsCost = [...programAddons.included, ...chosen].reduce(
+    (sum, option) => sum + addonTotal(option, people),
+    0
+  );
 
   const profitMargin = getProfitMargin(people, settings.marginTiers);
 
@@ -316,10 +311,14 @@ export async function calculatePrice({
 
   const pricePerPerson = Math.ceil(total / people);
 
+  const names = (o: { name: string; nameEn: string }) => ({ name: o.name, nameEn: o.nameEn });
+
   return {
     ok: true,
     pricePerPerson,
     total: Math.ceil(total),
+    includedAddons: programAddons.included.map(names),
+    selectedAddons: chosen.map(names),
   };
 }
 

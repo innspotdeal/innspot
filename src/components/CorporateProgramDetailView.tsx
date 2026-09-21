@@ -8,13 +8,16 @@ import CheckIcon from "@/components/CheckIcon";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
 import type { CorporateProgram } from "@/data/programs";
+import type { PublicAddon } from "@/lib/program-addons";
 
 export default function CorporateProgramDetailView({
   program,
   programs,
+  programAddons,
 }: {
   program: CorporateProgram;
   programs: CorporateProgram[];
+  programAddons: Record<string, PublicAddon[]>;
 }) {
   const router = useRouter();
   const { lang } = useLanguage();
@@ -133,7 +136,11 @@ export default function CorporateProgramDetailView({
 
       {!program.isCustom && (
         <div id="booking" className="relative z-10 bg-white px-4 pt-8 sm:px-8">
-          <BookingForm programs={programs} initialProgramId={program.id} />
+          <BookingForm
+            programs={programs}
+            programAddons={programAddons}
+            initialProgramId={program.id}
+          />
         </div>
       )}
 

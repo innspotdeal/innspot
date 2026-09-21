@@ -1,31 +1,48 @@
 import { NextResponse } from "next/server";
 import {
-  getAddonPrices,
   getPricingSettings,
   listProgramPricing,
-  setAddonPrice,
   setPricingSettings,
   setProgramPricing,
   type MarginTier,
 } from "@/lib/pricing";
+import {
+  ADDON_MODES,
+  listAddonCatalogue,
+  listProgramAddonModes,
+  setProgramAddonModes,
+  type AddonMode,
+} from "@/lib/program-addons";
 import { listPrograms } from "@/lib/programs-repo";
 import { listAllProgramTiers, setProgramTiers, TIER_KINDS, type PriceTier, type TierKind } from "@/lib/pricing";
 
 export async function GET() {
-  const [programs, programPricing, addonPrices, settings, programTiers] = await Promise.all([
-    listPrograms(),
-    listProgramPricing(),
-    getAddonPrices(),
-    getPricingSettings(),
-    listAllProgramTiers(),
-  ]);
+  const [programs, programPricing, settings, programTiers, catalogue, programAddons] =
+    await Promise.all([
+      listPrograms(),
+      listProgramPricing(),
+      getPricingSettings(),
+      listAllProgramTiers(),
+      listAddonCatalogue(),
+      listProgramAddonModes(),
+    ]);
 
   return NextResponse.json({
     ok: true,
     programs: programs.map((p) => ({ id: p.id, name: p.name, isCustom: p.isCustom })),
     programPricing,
     programTiers,
-    addonPrices,
+    // قايمة الإضافات الموحدة (بتتعدل من /api/admin/custom-trip)
+    addons: catalogue.map((o) => ({
+      id: o.id,
+      name: o.name,
+      nameEn: o.nameEn,
+      price: o.price,
+      priceUnit: o.priceUnit,
+      active: o.active,
+    })),
+    // programId → optionId → included | hidden (اللي مش موجود = متاحة كإضافة)
+    programAddons,
     settings,
   });
 }
@@ -89,10 +106,27 @@ export async function PATCH(request: Request) {
     }
   }
 
+  // القايمة القديمة اتلغت — الأسعار بقت على الإضافة نفسها في قايمة الإضافات
   if (b.addonPrices !== undefined) {
-    const entries = Object.entries(b.addonPrices as Record<string, unknown>);
-    for (const [key, price] of entries) {
-      await setAddonPrice(key, Number(price) || 0);
+    return NextResponse.json(
+      { ok: false, error: "أسعار الإضافات بتتعدل من قايمة الإضافات (/api/admin/custom-trip)" },
+      { status: 400 }
+    );
+  }
+
+  if (b.programAddons !== undefined) {
+    const catalogueIds = new Set((await listAddonCatalogue()).map((o) => o.id));
+    const entries = Object.entries((b.programAddons ?? {}) as Record<string, unknown>);
+    for (const [programId, raw] of entries) {
+      const modes: Record<string, AddonMode> = {};
+      for (const [optionId, mode] of Object.entries((raw ?? {}) as Record<string, unknown>)) {
+        if (!catalogueIds.has(optionId)) continue;
+        if (!ADDON_MODES.includes(mode as AddonMode)) {
+          return NextResponse.json({ ok: false, error: "وضع الإضافة غير صالح" }, { status: 400 });
+        }
+        modes[optionId] = mode as AddonMode;
+      }
+      await setProgramAddonModes(programId, modes);
     }
   }
 

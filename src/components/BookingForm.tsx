@@ -2,16 +2,19 @@
 
 import { useState, type FormEvent } from "react";
 import type { CorporateProgram } from "@/data/programs";
-import { ADDON_OPTIONS, type AddonKey } from "@/data/addons";
+import type { PublicAddon } from "@/lib/program-addons";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
 import ResultCard, { type PriceResult } from "@/components/ResultCard";
 
 export default function BookingForm({
   programs,
+  programAddons,
   initialProgramId = "",
 }: {
   programs: CorporateProgram[];
+  // لكل برنامج: الإضافات المشمولة والمتاحة للاختيار (من غير أسعار)
+  programAddons: Record<string, PublicAddon[]>;
   initialProgramId?: string;
 }) {
   const { lang } = useLanguage();
@@ -19,13 +22,18 @@ export default function BookingForm({
 
   const [programId, setProgramId] = useState(initialProgramId);
   const [people, setPeople] = useState("");
-  const [selectedAddons, setSelectedAddons] = useState<AddonKey[]>([]);
+  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [includeTransport, setIncludeTransport] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PriceResult | null>(null);
 
-  function toggleAddon(key: AddonKey) {
+  const addons = programAddons[programId] ?? [];
+  const includedAddons = addons.filter((a) => a.included);
+  const optionalAddons = addons.filter((a) => !a.included);
+  const addonName = (a: PublicAddon) => (lang === "en" ? a.nameEn || a.name : a.name);
+
+  function toggleAddon(key: string) {
     setSelectedAddons((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
     );
@@ -88,7 +96,12 @@ export default function BookingForm({
           <select
             id="programId"
             value={programId}
-            onChange={(e) => setProgramId(e.target.value)}
+            onChange={(e) => {
+              setProgramId(e.target.value);
+              // كل برنامج ليه إضافاته — الاختيار القديم ممكن ميكونش متاح في الجديد
+              setSelectedAddons([]);
+              setResult(null);
+            }}
             className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm focus:border-brand-blue focus:outline-none"
           >
             <option value="">{t.programPlaceholder}</option>
@@ -131,23 +144,46 @@ export default function BookingForm({
             <span className="font-medium text-neutral-700">{t.transportInclude}</span>
           </label>
 
-          <span className="mb-2 block text-sm font-bold text-neutral-800">{t.addonsLabel}</span>
-          <div className="flex flex-col gap-2">
-            {ADDON_OPTIONS.map((addon) => (
-              <label
-                key={addon.key}
-                className="flex cursor-pointer items-center gap-3 rounded-xl border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-700 hover:border-brand-orange/50"
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedAddons.includes(addon.key)}
-                  onChange={() => toggleAddon(addon.key)}
-                  className="h-4 w-4 accent-brand-orange"
-                />
-                {lang === "en" ? addon.labelEn : addon.label}
-              </label>
-            ))}
-          </div>
+          {includedAddons.length > 0 && (
+            <div className="mb-5">
+              <span className="mb-2 block text-sm font-bold text-neutral-800">{t.includedLabel}</span>
+              <div className="flex flex-wrap gap-2">
+                {includedAddons.map((addon) => (
+                  <span
+                    key={addon.id}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-brand-blue/5 px-3 py-1.5 text-sm font-semibold text-brand-blue"
+                  >
+                    <svg viewBox="0 0 20 20" aria-hidden="true" className="size-4 fill-current">
+                      <path d="M8 13.2 4.8 10l-1.1 1.1L8 15.4l8.3-8.3-1.1-1.1z" />
+                    </svg>
+                    {addonName(addon)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {optionalAddons.length > 0 && (
+            <>
+              <span className="mb-2 block text-sm font-bold text-neutral-800">{t.addonsLabel}</span>
+              <div className="flex flex-col gap-2">
+                {optionalAddons.map((addon) => (
+                  <label
+                    key={addon.id}
+                    className="flex cursor-pointer items-center gap-3 rounded-xl border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-700 hover:border-brand-orange/50"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedAddons.includes(addon.id)}
+                      onChange={() => toggleAddon(addon.id)}
+                      className="h-4 w-4 accent-brand-orange"
+                    />
+                    {addonName(addon)}
+                  </label>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {error && (

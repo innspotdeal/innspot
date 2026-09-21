@@ -6,11 +6,15 @@ import WhatsAppButton from "@/components/WhatsAppButton";
 import { useLanguage } from "@/lib/language-context";
 import type { CustomTripOption } from "@/data/custom-trip";
 
-type Props = { options: CustomTripOption[] };
+type Props = {
+  options: CustomTripOption[];
+  // إضافات مشمولة في البرنامج — بتتحسب دايمًا ومش بتتشال (بتتحدد من /admin/pricing)
+  includedAddonIds?: string[];
+};
 
 const MIN_PEOPLE = 1;
 
-export default function CustomTripBuilder({ options }: Props) {
+export default function CustomTripBuilder({ options, includedAddonIds = [] }: Props) {
   const { lang } = useLanguage();
   const isEn = lang === "en";
   const t = (ar: string, en: string) => (isEn ? en : ar);
@@ -87,7 +91,7 @@ export default function CustomTripBuilder({ options }: Props) {
       if (o) picked.push({ option: o, total: lineTotal(o) });
     }
 
-    for (const id of addonIds) {
+    for (const id of [...includedAddonIds, ...addonIds.filter((a) => !includedAddonIds.includes(a))]) {
       const o = find(id);
       if (o) picked.push({ option: o, total: lineTotal(o) });
     }
@@ -106,6 +110,7 @@ export default function CustomTripBuilder({ options }: Props) {
     lunchPlaceId,
     lunchItemIds,
     addonIds,
+    includedAddonIds,
     isEn,
   ]);
 
@@ -312,8 +317,10 @@ export default function CustomTripBuilder({ options }: Props) {
                 option={o}
                 detailsLabel={t("تفاصيل", "Details")}
                 isEn={isEn}
-                selected={addonIds.includes(o.id)}
-                onClick={() => toggle(addonIds, setAddonIds, o.id)}
+                selected={includedAddonIds.includes(o.id) || addonIds.includes(o.id)}
+                onClick={() => {
+                  if (!includedAddonIds.includes(o.id)) toggle(addonIds, setAddonIds, o.id);
+                }}
                 title={label(o)}
               />
             ))}

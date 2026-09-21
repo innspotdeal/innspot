@@ -8,6 +8,8 @@ export type PriceResult = {
   programName: string;
   people: number;
   addonLabels: string[];
+  // الإضافات المشمولة في سعر البرنامج نفسه (زي المركب في رحلة الباص)
+  includedLabels?: string[];
   pricePerPerson: number;
   total: number;
 };
@@ -15,14 +17,16 @@ export type PriceResult = {
 export default function ResultCard({ result }: { result: PriceResult }) {
   const { lang } = useLanguage();
   const t = translations[lang].resultCard;
-  const { programName, people, addonLabels, pricePerPerson, total } = result;
+  const { programName, people, addonLabels, includedLabels = [], pricePerPerson, total } = result;
 
-  const addonsText = addonLabels.length ? addonLabels.join(lang === "en" ? ", " : "، ") : t.whatsappNoAddons;
+  const join = (items: string[]) => items.join(lang === "en" ? ", " : "، ");
+  const addonsText = addonLabels.length ? join(addonLabels) : t.whatsappNoAddons;
 
   const whatsappMessage = [
     t.whatsappConfirmHeading,
     t.whatsappProgram(programName),
     t.whatsappPeople(people),
+    ...(includedLabels.length ? [t.whatsappIncluded(join(includedLabels))] : []),
     t.whatsappAddons(addonsText),
     t.whatsappTotal(t.currency(total)),
   ].join("\n");
@@ -47,10 +51,16 @@ export default function ResultCard({ result }: { result: PriceResult }) {
           <span className="font-semibold text-neutral-600">{t.peopleLabel}</span>
           <span className="font-bold text-brand-blue">{people}</span>
         </div>
+        {includedLabels.length > 0 && (
+          <div className="flex items-start justify-between gap-4">
+            <span className="font-semibold text-neutral-600">{t.includedLabel}</span>
+            <span className="text-left font-bold text-brand-blue">{join(includedLabels)}</span>
+          </div>
+        )}
         <div className="flex items-start justify-between gap-4">
           <span className="font-semibold text-neutral-600">{t.addonsLabel}</span>
           <span className="text-left font-bold text-brand-blue">
-            {addonLabels.length ? addonLabels.join(lang === "en" ? ", " : "، ") : t.noAddons}
+            {addonLabels.length ? join(addonLabels) : t.noAddons}
           </span>
         </div>
         <div className="flex items-center justify-between border-t border-black/5 pt-3">

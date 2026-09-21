@@ -116,8 +116,24 @@ export type CustomTripOption = {
   sortOrder: number;
 };
 
+export type TierKind = "breakfast" | "lunch" | "tickets";
+
 // شريحة سعر لبند معيّن حسب عدد الأفراد — toPeople = 0 معناها "وما فوق"
-export type PriceTier = { fromPeople: number; toPeople: number; price: number };
+// الشرائح بتيجي في مصفوفة واحدة لكل برنامج، وكل شريحة عليها نوعها (kind)
+export type PriceTier = { kind: TierKind; fromPeople: number; toPeople: number; price: number };
+
+// وضع الإضافة في برنامج: متاحة كإضافة / مشمولة في سعر البرنامج / مش متاحة
+export type AddonMode = "available" | "included" | "hidden";
+
+// إضافة من القايمة الموحدة (هي نفسها خيارات الكاستم بنوع addon)
+export type AddonSummary = {
+  id: string;
+  name: string;
+  nameEn: string;
+  price: number;
+  priceUnit: PriceUnit;
+  active: boolean;
+};
 
 // شريحة هامش ربح — toPeople = 0 معناها "وما فوق"
 export type MarginTier = { fromPeople: number; toPeople: number; margin: number };
@@ -135,8 +151,10 @@ export type ProgramPricing = {
 export type PricingSnapshot = {
   programs: { id: string; name: string; isCustom: boolean }[];
   programPricing: Record<string, ProgramPricing>;
-  programTiers: Record<string, Record<"breakfast" | "lunch" | "tickets", PriceTier[]>>;
-  addonPrices: Record<string, number>;
+  programTiers: Record<string, PriceTier[]>;
+  addons: AddonSummary[];
+  // اللي مش موجود هنا = متاحة كإضافة
+  programAddons: Record<string, Record<string, "included" | "hidden">>;
   settings: { peoplePerCar: number; marginTiers: MarginTier[] };
 };
 
@@ -272,8 +290,11 @@ export function createInnspotClient(config: InnspotConfig = {}) {
       /** بيحدّث الأجزاء اللي تبعتها بس — أي حاجة تسيبها مش هتتغير */
       update: (patch: {
         programPricing?: Record<string, ProgramPricing>;
-        programTiers?: Record<string, Record<"breakfast" | "lunch" | "tickets", PriceTier[]>>;
-        addonPrices?: Record<string, number>;
+        // بيستبدل كل شرائح البرنامج باللي اتبعت
+        programTiers?: Record<string, PriceTier[]>;
+        // بيستبدل كل إعدادات الإضافات للبرنامج — ابعت كل الإضافات، واللي مش هتبعته يرجع "متاحة"
+        // أسعار الإضافات نفسها بتتعدل من customTrip.update
+        programAddons?: Record<string, Record<string, AddonMode>>;
         settings?: { peoplePerCar?: number; marginTiers?: MarginTier[] };
       }) => request<{ ok: true }>("PATCH", "/api/admin/pricing", patch),
     },

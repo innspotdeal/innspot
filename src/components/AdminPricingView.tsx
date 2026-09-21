@@ -2,6 +2,7 @@
 
 import { Fragment, useState } from "react";
 import type { MarginTier, PriceTier, PricingSettings, ProgramPricing, TierKind } from "@/lib/pricing";
+import AdminAddonsSection, { type AddonRow } from "@/components/AdminAddonsSection";
 
 const TIER_KIND_LABELS: Record<TierKind, string> = {
   breakfast: "الفطار",
@@ -11,7 +12,6 @@ const TIER_KIND_LABELS: Record<TierKind, string> = {
 const TIER_KIND_LIST: TierKind[] = ["breakfast", "lunch", "tickets"];
 
 type ProgramSummary = { id: string; name: string; isCustom: boolean };
-type AddonOption = { key: string; label: string };
 
 const emptyPricing: ProgramPricing = {
   breakfastPerPerson: 0,
@@ -27,28 +27,21 @@ export default function AdminPricingView({
   programs,
   initialProgramPricing,
   initialProgramTiers,
-  addonOptions,
-  initialAddonPrices,
+  addons,
+  programAddons,
   initialSettings,
 }: {
   programs: ProgramSummary[];
   initialProgramPricing: Record<string, ProgramPricing>;
   initialProgramTiers: Record<string, PriceTier[]>;
-  addonOptions: AddonOption[];
-  initialAddonPrices: Record<string, number>;
+  addons: AddonRow[];
+  programAddons: Record<string, Record<string, "included" | "hidden">>;
   initialSettings: PricingSettings;
 }) {
   const [programPricing, setProgramPricing] = useState<Record<string, ProgramPricing>>(() => {
     const map: Record<string, ProgramPricing> = {};
     for (const p of programs) {
       map[p.id] = initialProgramPricing[p.id] ?? emptyPricing;
-    }
-    return map;
-  });
-  const [addonPrices, setAddonPrices] = useState<Record<string, number>>(() => {
-    const map: Record<string, number> = {};
-    for (const a of addonOptions) {
-      map[a.key] = initialAddonPrices[a.key] ?? 0;
     }
     return map;
   });
@@ -66,7 +59,6 @@ export default function AdminPricingView({
   );
 
   const [savingProgram, setSavingProgram] = useState<string | null>(null);
-  const [savingAddons, setSavingAddons] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -102,19 +94,6 @@ export default function AdminPricingView({
       flash("تعذر الاتصال بالسيرفر", true);
     } finally {
       setSavingProgram(null);
-    }
-  }
-
-  async function handleSaveAddons() {
-    setSavingAddons(true);
-    try {
-      const data = await patchPricing({ addonPrices });
-      if (!data.ok) flash(data.error || "حدث خطأ", true);
-      else flash("تم حفظ أسعار الإضافات");
-    } catch {
-      flash("تعذر الاتصال بالسيرفر", true);
-    } finally {
-      setSavingAddons(false);
     }
   }
 
@@ -343,34 +322,11 @@ export default function AdminPricingView({
         </div>
       </section>
 
-      {/* أسعار الإضافات */}
-      <section className="mt-10">
-        <h2 className="text-lg font-extrabold text-neutral-800">أسعار الإضافات</h2>
-        <div className="mt-3 grid grid-cols-1 gap-4 rounded-2xl border border-black/10 bg-white p-6 sm:grid-cols-3">
-          {addonOptions.map((addon) => (
-            <div key={addon.key}>
-              <label className="block text-sm font-semibold text-neutral-700">{addon.label}</label>
-              <input
-                type="number"
-                value={addonPrices[addon.key] ?? 0}
-                onChange={(e) =>
-                  setAddonPrices((prev) => ({ ...prev, [addon.key]: Number(e.target.value) || 0 }))
-                }
-                className="mt-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-brand-blue"
-              />
-            </div>
-          ))}
-          <div className="sm:col-span-3">
-            <button
-              onClick={handleSaveAddons}
-              disabled={savingAddons}
-              className="rounded-lg bg-brand-blue px-5 py-2 text-sm font-bold text-white transition hover:bg-brand-blue/90 disabled:opacity-60"
-            >
-              {savingAddons ? "جاري الحفظ..." : "حفظ أسعار الإضافات"}
-            </button>
-          </div>
-        </div>
-      </section>
+      <AdminAddonsSection
+        programs={programs.map((p) => ({ id: p.id, name: p.name }))}
+        initialAddons={addons}
+        initialModes={programAddons}
+      />
 
       {/* الإعدادات العامة */}
       <section className="mt-10">

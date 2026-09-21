@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { calculatePrice, isValidAddonKey, MIN_PEOPLE } from "@/lib/pricing";
-import { ADDON_OPTIONS, type AddonKey } from "@/data/addons";
+import { calculatePrice, MIN_PEOPLE } from "@/lib/pricing";
 import { getProgramById } from "@/lib/programs-repo";
 
 type Lang = "ar" | "en";
@@ -21,12 +20,6 @@ const MESSAGES: Record<Lang, Record<string, string>> = {
     minPeople: `Minimum booking is ${MIN_PEOPLE} people`,
   },
 };
-
-function getAddonLabel(key: AddonKey, lang: Lang): string {
-  const option = ADDON_OPTIONS.find((opt) => opt.key === key);
-  if (!option) return key;
-  return lang === "en" ? option.labelEn : option.label;
-}
 
 // نقطة API لحساب سعر الرحلة
 // الفرونت إند يرسل: معرّف البرنامج، عدد الأفراد، الإضافات المختارة، ولغة العرض فقط
@@ -71,15 +64,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: t.minPeople }, { status: 400 });
   }
 
-  const rawAddons = Array.isArray(addons) ? addons : [];
-  const validAddonKeys: AddonKey[] = rawAddons.filter(
-    (key): key is AddonKey => typeof key === "string" && isValidAddonKey(key)
+  // الإضافات اللي مش متاحة للبرنامج ده بيتجاهلها محرك التسعير نفسه
+  const addonIds = (Array.isArray(addons) ? addons : []).filter(
+    (id): id is string => typeof id === "string"
   );
 
   const result = await calculatePrice({
     programId,
     people: peopleNumber,
-    addons: validAddonKeys,
+    addons: addonIds,
     includeTransport: includeTransport === undefined ? true : Boolean(includeTransport),
   });
 
@@ -87,13 +80,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: result.error }, { status: 400 });
   }
 
-  const addonLabels = validAddonKeys.map((key) => getAddonLabel(key, lang));
+  const label = (o: { name: string; nameEn: string }) => (lang === "en" ? o.nameEn || o.name : o.name);
 
   return NextResponse.json({
     ok: true,
     programName: lang === "en" ? program.nameEn : program.name,
     people: peopleNumber,
-    addonLabels,
+    addonLabels: result.selectedAddons.map(label),
+    includedLabels: result.includedAddons.map(label),
     pricePerPerson: result.pricePerPerson,
     total: result.total,
   });

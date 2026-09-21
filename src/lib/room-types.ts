@@ -7,6 +7,14 @@ import type { RoomType } from "@/data/hotels";
 // ============================================================
 
 const text = (value: unknown) => (typeof value === "string" ? value.trim() : "");
+const urls = (value: unknown) =>
+  Array.isArray(value)
+    ? value.filter((v): v is string => typeof v === "string" && v.trim() !== "").map((v) => v.trim())
+    : [];
+
+// حد معقول عشان صفحة الفندق متتقلش
+const MAX_ROOM_IMAGES = 12;
+
 const number = (value: unknown) => {
   const n = Number(value);
   return Number.isFinite(n) ? n : 0;
@@ -24,6 +32,7 @@ export function readRoomTypes(value: unknown): RoomType[] {
       descriptionEn: text(r.descriptionEn),
       capacity: Math.max(1, Math.round(number(r.capacity)) || 1),
       price: Math.max(0, number(r.price)),
+      images: urls(r.images),
     }))
     .filter((r) => r.name);
 }
@@ -53,6 +62,11 @@ export function parseRoomTypes(
       return { ok: false, error: `${label} (${name}): السعر لازم يكون رقم مش سالب` };
     }
 
+    const images = urls(r.images);
+    if (images.length > MAX_ROOM_IMAGES) {
+      return { ok: false, error: `${label} (${name}): أقصى عدد صور ${MAX_ROOM_IMAGES}` };
+    }
+
     rooms.push({
       name,
       nameEn: text(r.nameEn),
@@ -60,6 +74,7 @@ export function parseRoomTypes(
       descriptionEn: text(r.descriptionEn),
       capacity,
       price,
+      images,
     });
   }
   return { ok: true, rooms };

@@ -1,6 +1,7 @@
 "use client";
 
 import type { RoomType } from "@/data/hotels";
+import ImageUploader from "@/components/ImageUploader";
 
 // ============================================================
 // محرر غرف الفندق — كل غرفة ليها اسم ووصف وسعة وسعر الليلة
@@ -14,6 +15,7 @@ export const emptyRoom: RoomType = {
   descriptionEn: "",
   capacity: 2,
   price: 0,
+  images: [],
 };
 
 const inputClass =
@@ -118,6 +120,11 @@ export default function AdminRoomsEditor({
               />
               <span className="mt-1 block font-normal text-neutral-400">صفر = السعر مش هيظهر للزوار</span>
             </label>
+          </div>
+
+          <div className="mt-3">
+            <p className="mb-1 text-xs font-semibold text-neutral-600">صور الغرفة (الأولى هي الغلاف)</p>
+            <ImageUploader images={room.images} onChange={(images) => update(index, { images })} />
           </div>
         </div>
       ))}

@@ -18,6 +18,8 @@ export type RoomType = {
   capacity: number;
   // سعر الليلة للغرفة بالجنيه — 0 = مش هيظهر سعر
   price: number;
+  // صور الغرفة — الأولى هي الغلاف
+  images: string[];
 };
 
 export type Hotel = {
@@ -41,6 +43,7 @@ const room = (name: string, nameEn: string, capacity: number): RoomType => ({
   descriptionEn: "",
   capacity,
   price: 0,
+  images: [],
 });
 
 const SINGLE_DOUBLE_TRIPLE: RoomType[] = [

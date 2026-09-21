@@ -39,6 +39,8 @@ export type RoomType = {
   descriptionEn: string;
   capacity: number;
   price: number;
+  // صور الغرفة — الأولى هي الغلاف
+  images: string[];
 };
 
 export type Hotel = {

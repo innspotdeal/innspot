@@ -50,3 +50,6 @@ next-env.d.ts
 /logo portfilio/
 /video/
 /logo/
+
+# صور مرفوعة على جهاز التطوير (الإنتاج بيستخدم Vercel Blob)
+/public/uploads

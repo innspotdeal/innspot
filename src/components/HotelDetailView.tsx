@@ -61,8 +61,19 @@ export default function HotelDetailView({ item }: { item: Hotel }) {
               return (
                 <li
                   key={`${roomType.name}-${index}`}
-                  className="flex flex-col gap-2 rounded-2xl border border-black/5 bg-neutral-50 p-4"
+                  className="flex flex-col gap-2 overflow-hidden rounded-2xl border border-black/5 bg-neutral-50"
                 >
+                  {roomType.images.length > 0 && (
+                    <div className="relative">
+                      <ImageGallery
+                        images={roomType.images}
+                        alt={roomName}
+                        aspectClassName="aspect-[4/3]"
+                        counterPosition="end"
+                      />
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-2 px-4 pb-4 pt-2 first:pt-4">
                   <div className="flex items-start justify-between gap-3">
                     <p className="font-bold text-brand-blue">{roomName}</p>
                     {roomType.price > 0 && (
@@ -81,6 +92,7 @@ export default function HotelDetailView({ item }: { item: Hotel }) {
                   {roomDescription && (
                     <p className="text-sm leading-relaxed text-neutral-600">{roomDescription}</p>
                   )}
+                  </div>
                 </li>
               );
             })}

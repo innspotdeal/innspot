@@ -1,11 +1,27 @@
 import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
+import crypto from "node:crypto";
 
 const MAX_SIZE_BYTES = 8 * 1024 * 1024; // 8 ميجا
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/gif"];
 
+// على جهاز التطوير مفيش Vercel Blob — الصورة بتتحفظ في public/uploads
+// (متجاهل في git). على الإنتاج ده مش بيشتغل أبدًا.
+const LOCAL_FALLBACK = !process.env.BLOB_READ_WRITE_TOKEN && process.env.NODE_ENV !== "production";
+
+async function saveLocally(file: File): Promise<string> {
+  const dir = path.join(process.cwd(), "public", "uploads");
+  await mkdir(dir, { recursive: true });
+  const ext = path.extname(file.name).toLowerCase().replace(/[^.a-z0-9]/g, "") || ".jpg";
+  const name = `${Date.now()}-${crypto.randomBytes(6).toString("hex")}${ext}`;
+  await writeFile(path.join(dir, name), Buffer.from(await file.arrayBuffer()));
+  return `/uploads/${name}`;
+}
+
 export async function POST(request: Request) {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  if (!process.env.BLOB_READ_WRITE_TOKEN && !LOCAL_FALLBACK) {
     return NextResponse.json(
       { ok: false, error: "تخزين الصور (Vercel Blob) مش متفعّل على السيرفر ده بعد" },
       { status: 500 }
@@ -25,6 +41,10 @@ export async function POST(request: Request) {
 
   if (file.size > MAX_SIZE_BYTES) {
     return NextResponse.json({ ok: false, error: "حجم الصورة أكبر من 8 ميجا" }, { status: 400 });
+  }
+
+  if (LOCAL_FALLBACK) {
+    return NextResponse.json({ ok: true, url: await saveLocally(file) });
   }
 
   const blob = await put(`uploads/${Date.now()}-${file.name}`, file, {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { deleteHotel, updateHotel, type HotelUpdateInput, type HotelInput } from "@/lib/hotels-repo";
+import { deleteHotel, updateHotel, type HotelUpdateInput } from "@/lib/hotels-repo";
+import { parseRoomTypes } from "@/lib/room-types";
 
 function toList(value: unknown): string[] {
   return typeof value === "string"
@@ -9,20 +10,9 @@ function toList(value: unknown): string[] {
       : [];
 }
 
-function toRoomTypes(value: unknown): HotelInput["roomTypes"] {
-  if (Array.isArray(value)) return value as HotelInput["roomTypes"];
-  if (typeof value !== "string") return [];
-  return value
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [name, nameEn, capacity] = line.split(",").map((s) => s.trim());
-      return { name: name ?? "", nameEn: nameEn ?? "", capacity: Number(capacity) || 1 };
-    });
-}
-
-function parseUpdateInput(body: unknown): HotelUpdateInput {
+function parseUpdateInput(
+  body: unknown
+): { ok: true; update: HotelUpdateInput } | { ok: false; error: string } {
   const b = (body ?? {}) as Record<string, unknown>;
   const update: HotelUpdateInput = {};
 
@@ -31,13 +21,17 @@ function parseUpdateInput(body: unknown): HotelUpdateInput {
   if (typeof b.description === "string") update.description = b.description.trim();
   if (typeof b.descriptionEn === "string") update.descriptionEn = b.descriptionEn.trim();
   if (b.images !== undefined) update.images = toList(b.images);
-  if (b.roomTypes !== undefined) update.roomTypes = toRoomTypes(b.roomTypes);
+  if (b.roomTypes !== undefined) {
+    const rooms = parseRoomTypes(b.roomTypes);
+    if (!rooms.ok) return rooms;
+    update.roomTypes = rooms.rooms;
+  }
   if (b.amenities !== undefined) update.amenities = toList(b.amenities);
   if (b.amenitiesEn !== undefined) update.amenitiesEn = toList(b.amenitiesEn);
   if (b.hasPool !== undefined) update.hasPool = Boolean(b.hasPool);
   if (b.hasGarden !== undefined) update.hasGarden = Boolean(b.hasGarden);
 
-  return update;
+  return { ok: true, update };
 }
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -50,7 +44,12 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     return NextResponse.json({ ok: false, error: "بيانات غير صالحة" }, { status: 400 });
   }
 
-  const hotel = await updateHotel(id, parseUpdateInput(body));
+  const parsed = parseUpdateInput(body);
+  if (!parsed.ok) {
+    return NextResponse.json({ ok: false, error: parsed.error }, { status: 400 });
+  }
+
+  const hotel = await updateHotel(id, parsed.update);
   if (!hotel) {
     return NextResponse.json({ ok: false, error: "الفندق غير موجود" }, { status: 404 });
   }

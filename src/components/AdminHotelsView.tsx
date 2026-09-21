@@ -1,15 +1,15 @@
 "use client";
 
 import { Fragment, useState } from "react";
-import type { Hotel } from "@/data/hotels";
+import type { Hotel, RoomType } from "@/data/hotels";
 import ImageUploader from "@/components/ImageUploader";
+import AdminRoomsEditor from "@/components/AdminRoomsEditor";
 
 type NewHotelForm = {
   name: string;
   nameEn: string;
   description: string;
   descriptionEn: string;
-  roomTypes: string;
   hasPool: boolean;
   hasGarden: boolean;
   amenities: string;
@@ -21,7 +21,6 @@ const emptyForm: NewHotelForm = {
   nameEn: "",
   description: "",
   descriptionEn: "",
-  roomTypes: "",
   hasPool: false,
   hasGarden: false,
   amenities: "",
@@ -36,6 +35,14 @@ export default function AdminHotelsView({ initialHotels }: { initialHotels: Hote
   const [showAddForm, setShowAddForm] = useState(false);
   const [form, setForm] = useState<NewHotelForm>(emptyForm);
   const [newImages, setNewImages] = useState<string[]>([]);
+  const [newRooms, setNewRooms] = useState<RoomType[]>([]);
+
+  // تعديل غرف فندق موجود
+  const [expandedRoomsId, setExpandedRoomsId] = useState<string | null>(null);
+  const [editRooms, setEditRooms] = useState<Record<string, RoomType[]>>(() =>
+    Object.fromEntries(initialHotels.map((h) => [h.id, h.roomTypes]))
+  );
+  const [savingRoomsId, setSavingRoomsId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
   const [expandedImagesId, setExpandedImagesId] = useState<string | null>(null);
@@ -75,6 +82,29 @@ export default function AdminHotelsView({ initialHotels }: { initialHotels: Hote
     }
   }
 
+  async function handleSaveRooms(id: string) {
+    setSavingRoomsId(id);
+    try {
+      const res = await fetch(`/api/admin/hotels/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roomTypes: editRooms[id] ?? [] }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        flash(data.error || "حدث خطأ", true);
+      } else {
+        setHotels((prev) => prev.map((h) => (h.id === id ? data.hotel : h)));
+        setEditRooms((prev) => ({ ...prev, [id]: data.hotel.roomTypes }));
+        flash("تم حفظ الغرف");
+      }
+    } catch {
+      flash("تعذر الاتصال بالسيرفر", true);
+    } finally {
+      setSavingRoomsId(null);
+    }
+  }
+
   async function handleDelete(id: string, name: string) {
     if (!confirm(`متأكد إنك عايز تحذف "${name}"؟`)) return;
     setDeletingId(id);
@@ -102,7 +132,7 @@ export default function AdminHotelsView({ initialHotels }: { initialHotels: Hote
       const res = await fetch("/api/admin/hotels", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, images: newImages }),
+        body: JSON.stringify({ ...form, images: newImages, roomTypes: newRooms }),
       });
       const data = await res.json();
       if (!data.ok) {
@@ -111,8 +141,10 @@ export default function AdminHotelsView({ initialHotels }: { initialHotels: Hote
       }
       setHotels((prev) => [...prev, data.hotel]);
       setEditImages((prev) => ({ ...prev, [data.hotel.id]: data.hotel.images }));
+      setEditRooms((prev) => ({ ...prev, [data.hotel.id]: data.hotel.roomTypes }));
       setForm(emptyForm);
       setNewImages([]);
+      setNewRooms([]);
       setShowAddForm(false);
       flash("تمت إضافة الفندق");
     } catch {
@@ -150,13 +182,7 @@ export default function AdminHotelsView({ initialHotels }: { initialHotels: Hote
           <Field label="Name (English)" value={form.nameEn} onChange={(v) => setForm({ ...form, nameEn: v })} required />
           <Field label="الوصف (عربي)" value={form.description} onChange={(v) => setForm({ ...form, description: v })} textarea />
           <Field label="Description (English)" value={form.descriptionEn} onChange={(v) => setForm({ ...form, descriptionEn: v })} textarea />
-          <Field
-            label="أنواع الغرف (سطر لكل نوع: اسم عربي,اسم إنجليزي,السعة)"
-            value={form.roomTypes}
-            onChange={(v) => setForm({ ...form, roomTypes: v })}
-            textarea
-          />
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 sm:col-span-2">
             <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
               <input type="checkbox" checked={form.hasPool} onChange={(e) => setForm({ ...form, hasPool: e.target.checked })} />
               مسبح
@@ -172,6 +198,11 @@ export default function AdminHotelsView({ initialHotels }: { initialHotels: Hote
           <div className="sm:col-span-2">
             <label className="mb-1 block text-sm font-semibold text-neutral-700">الصور</label>
             <ImageUploader images={newImages} onChange={setNewImages} />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="mb-2 block text-sm font-semibold text-neutral-700">الغرف</label>
+            <AdminRoomsEditor rooms={newRooms} onChange={setNewRooms} />
           </div>
 
           <div className="sm:col-span-2">
@@ -191,7 +222,7 @@ export default function AdminHotelsView({ initialHotels }: { initialHotels: Hote
           <thead className="bg-neutral-50 text-neutral-600">
             <tr>
               <th className="px-4 py-3 font-bold">الفندق</th>
-              <th className="px-4 py-3 font-bold">أنواع الغرف</th>
+              <th className="px-4 py-3 font-bold">الغرف</th>
               <th className="px-4 py-3 font-bold"></th>
             </tr>
           </thead>
@@ -201,10 +232,21 @@ export default function AdminHotelsView({ initialHotels }: { initialHotels: Hote
               <tr className="border-t border-black/5">
                 <td className="px-4 py-3 font-semibold text-brand-blue">{hotel.name}</td>
                 <td className="px-4 py-3 text-neutral-600">
-                  {hotel.roomTypes.map((rt) => rt.name).join("، ") || "—"}
+                  {hotel.roomTypes.length
+                    ? `${hotel.roomTypes.length} — ${hotel.roomTypes.map((rt) => rt.name).join("، ")}`
+                    : "—"}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => {
+                        setExpandedRoomsId((prev) => (prev === hotel.id ? null : hotel.id));
+                        setExpandedImagesId(null);
+                      }}
+                      className="rounded-lg border border-black/10 px-3 py-1.5 text-xs font-bold text-neutral-700 transition hover:bg-neutral-50"
+                    >
+                      {expandedRoomsId === hotel.id ? "إخفاء الغرف" : "الغرف"}
+                    </button>
                     <button
                       onClick={() => setExpandedImagesId((prev) => (prev === hotel.id ? null : hotel.id))}
                       className="rounded-lg border border-black/10 px-3 py-1.5 text-xs font-bold text-neutral-700 transition hover:bg-neutral-50"
@@ -221,6 +263,24 @@ export default function AdminHotelsView({ initialHotels }: { initialHotels: Hote
                   </div>
                 </td>
               </tr>
+              {expandedRoomsId === hotel.id && (
+                <tr className="border-t border-black/5 bg-neutral-50">
+                  <td colSpan={3} className="px-4 py-4">
+                    <p className="mb-3 text-sm font-semibold text-neutral-700">غرف {hotel.name}</p>
+                    <AdminRoomsEditor
+                      rooms={editRooms[hotel.id] ?? []}
+                      onChange={(rooms) => setEditRooms((prev) => ({ ...prev, [hotel.id]: rooms }))}
+                    />
+                    <button
+                      onClick={() => handleSaveRooms(hotel.id)}
+                      disabled={savingRoomsId === hotel.id}
+                      className="mt-4 rounded-lg bg-brand-blue px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-blue/90 disabled:opacity-60"
+                    >
+                      {savingRoomsId === hotel.id ? "جاري الحفظ..." : "حفظ الغرف"}
+                    </button>
+                  </td>
+                </tr>
+              )}
               {expandedImagesId === hotel.id && (
                 <tr className="border-t border-black/5 bg-neutral-50">
                   <td colSpan={3} className="px-4 py-4">

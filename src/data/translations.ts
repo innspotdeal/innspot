@@ -33,6 +33,7 @@ export const translations = {
       weekdayPrice: "سعر أيام الأسبوع",
       weekendPrice: "سعر نهاية الأسبوع",
       currency: (v: number) => `${v.toLocaleString("ar-EG")} جنيه`,
+      perNight: "/ الليلة",
     },
     accommodationDetail: {
       back: "→ العودة إلى أفراد وإقامة",
@@ -144,6 +145,7 @@ export const translations = {
       weekdayPrice: "Weekday Price",
       weekendPrice: "Weekend Price",
       currency: (v: number) => `EGP ${v.toLocaleString("en-US")}`,
+      perNight: "/ night",
     },
     accommodationDetail: {
       back: "← Back to Accommodation",

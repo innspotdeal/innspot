@@ -48,23 +48,45 @@ export default function HotelDetailView({ item }: { item: Hotel }) {
           <p className="leading-relaxed text-neutral-600">{description}</p>
         </div>
 
+        {item.roomTypes.length > 0 && (
         <div className="mt-6 border-t border-black/5 pt-6">
           <h2 className="mb-4 text-lg font-bold text-brand-blue">
             {t.accommodationDetail.roomTypesHeading}
           </h2>
-          <ul className="flex flex-wrap gap-2">
-            {item.roomTypes.map((roomType) => (
-              <li
-                key={roomType.name}
-                className="flex items-center gap-2 rounded-full bg-brand-orange/10 px-4 py-1.5 text-sm font-semibold text-brand-orange"
-              >
-                <i className="fi fi-sr-user" aria-hidden="true" />
-                {lang === "en" ? roomType.nameEn : roomType.name} ·{" "}
-                {t.accommodationCard.capacity(roomType.capacity)}
-              </li>
-            ))}
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {item.roomTypes.map((roomType, index) => {
+              const roomName = lang === "en" ? roomType.nameEn || roomType.name : roomType.name;
+              const roomDescription =
+                lang === "en" ? roomType.descriptionEn || roomType.description : roomType.description;
+              return (
+                <li
+                  key={`${roomType.name}-${index}`}
+                  className="flex flex-col gap-2 rounded-2xl border border-black/5 bg-neutral-50 p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="font-bold text-brand-blue">{roomName}</p>
+                    {roomType.price > 0 && (
+                      <p className="shrink-0 text-end">
+                        <span className="font-extrabold text-brand-orange">
+                          {t.accommodationCard.currency(roomType.price)}
+                        </span>{" "}
+                        <span className="text-xs text-neutral-500">{t.accommodationCard.perNight}</span>
+                      </p>
+                    )}
+                  </div>
+                  <p className="flex items-center gap-2 text-sm font-semibold text-neutral-600">
+                    <i className="fi fi-sr-user text-brand-orange" aria-hidden="true" />
+                    {t.accommodationCard.capacity(roomType.capacity)}
+                  </p>
+                  {roomDescription && (
+                    <p className="text-sm leading-relaxed text-neutral-600">{roomDescription}</p>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
+        )}
 
         <div className="mt-6 border-t border-black/5 pt-6 pb-6">
           <h2 className="mb-4 text-lg font-bold text-brand-blue">

@@ -34,9 +34,9 @@ export default function HotelFullCard({ item }: { item: Hotel }) {
           <p className="text-sm leading-relaxed text-neutral-600">{description}</p>
 
           <ul className="flex flex-wrap gap-2">
-            {item.roomTypes.map((roomType) => (
+            {item.roomTypes.map((roomType, index) => (
               <li
-                key={roomType.name}
+                key={`${roomType.name}-${index}`}
                 className="rounded-full bg-brand-orange/10 px-3 py-1 text-xs font-semibold text-brand-orange"
               >
                 {lang === "en" ? roomType.nameEn : roomType.name}

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createHotel, listHotels, type HotelInput } from "@/lib/hotels-repo";
+import { parseRoomTypes } from "@/lib/room-types";
 
 function slugify(text: string): string {
   return text
@@ -17,20 +18,6 @@ function toList(value: unknown): string[] {
       : [];
 }
 
-function toRoomTypes(value: unknown): HotelInput["roomTypes"] {
-  // شكل الإدخال المتوقع من الفورم: أسطر، كل سطر "اسم عربي,اسم إنجليزي,السعة"
-  if (Array.isArray(value)) return value as HotelInput["roomTypes"];
-  if (typeof value !== "string") return [];
-  return value
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [name, nameEn, capacity] = line.split(",").map((s) => s.trim());
-      return { name: name ?? "", nameEn: nameEn ?? "", capacity: Number(capacity) || 1 };
-    });
-}
-
 function parseHotelInput(body: unknown): { ok: true; data: HotelInput } | { ok: false; error: string } {
   const b = (body ?? {}) as Record<string, unknown>;
 
@@ -44,6 +31,9 @@ function parseHotelInput(body: unknown): { ok: true; data: HotelInput } | { ok: 
   const id = slugify(rawId);
   if (!id) return { ok: false, error: "تعذر تكوين معرّف صالح للفندق" };
 
+  const rooms = parseRoomTypes(b.roomTypes);
+  if (!rooms.ok) return rooms;
+
   return {
     ok: true,
     data: {
@@ -53,7 +43,7 @@ function parseHotelInput(body: unknown): { ok: true; data: HotelInput } | { ok: 
       description: typeof b.description === "string" ? b.description.trim() : "",
       descriptionEn: typeof b.descriptionEn === "string" ? b.descriptionEn.trim() : "",
       images: toList(b.images),
-      roomTypes: toRoomTypes(b.roomTypes),
+      roomTypes: rooms.rooms,
       hasPool: Boolean(b.hasPool),
       hasGarden: Boolean(b.hasGarden),
       amenities: toList(b.amenities),

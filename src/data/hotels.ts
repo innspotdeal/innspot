@@ -12,7 +12,12 @@
 export type RoomType = {
   name: string;
   nameEn: string;
+  description: string;
+  descriptionEn: string;
+  // عدد الأفراد في الغرفة
   capacity: number;
+  // سعر الليلة للغرفة بالجنيه — 0 = مش هيظهر سعر
+  price: number;
 };
 
 export type Hotel = {
@@ -29,13 +34,22 @@ export type Hotel = {
   amenitiesEn: string[];
 };
 
+const room = (name: string, nameEn: string, capacity: number): RoomType => ({
+  name,
+  nameEn,
+  description: "",
+  descriptionEn: "",
+  capacity,
+  price: 0,
+});
+
 const SINGLE_DOUBLE_TRIPLE: RoomType[] = [
-  { name: "غرفة مفردة", nameEn: "Single Room", capacity: 1 },
-  { name: "غرفة مزدوجة", nameEn: "Double Room", capacity: 2 },
-  { name: "غرفة ثلاثية", nameEn: "Triple Room", capacity: 3 },
+  room("غرفة مفردة", "Single Room", 1),
+  room("غرفة مزدوجة", "Double Room", 2),
+  room("غرفة ثلاثية", "Triple Room", 3),
 ];
 
-const SUITE_ONLY: RoomType[] = [{ name: "سويت", nameEn: "Suite", capacity: 2 }];
+const SUITE_ONLY: RoomType[] = [room("سويت", "Suite", 2)];
 
 export const hotels: Hotel[] = [
   {

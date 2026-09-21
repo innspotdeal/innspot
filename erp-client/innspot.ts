@@ -31,7 +31,15 @@ export type Villa = {
   priceWeekend: number;
 };
 
-export type RoomType = { name: string; nameEn: string; capacity: number };
+// غرفة في فندق — السعر لليلة بالجنيه (0 = مش بيظهر للزوار)
+export type RoomType = {
+  name: string;
+  nameEn: string;
+  description: string;
+  descriptionEn: string;
+  capacity: number;
+  price: number;
+};
 
 export type Hotel = {
   id: string;

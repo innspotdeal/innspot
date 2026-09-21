@@ -1,6 +1,7 @@
 import "server-only";
 import { pool } from "@/lib/db";
 import type { Hotel, RoomType } from "@/data/hotels";
+import { readRoomTypes } from "@/lib/room-types";
 
 type HotelRow = {
   id: string;
@@ -24,7 +25,7 @@ function rowToHotel(row: HotelRow): Hotel {
     description: row.description,
     descriptionEn: row.description_en,
     images: row.images ?? [],
-    roomTypes: row.room_types ?? [],
+    roomTypes: readRoomTypes(row.room_types),
     hasPool: row.has_pool,
     hasGarden: row.has_garden,
     amenities: row.amenities ?? [],

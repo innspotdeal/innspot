@@ -5,8 +5,10 @@ import AccommodationFullCard from "@/components/AccommodationFullCard";
 import type { Accommodation } from "@/data/accommodations";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
+import { useShuffled } from "@/lib/use-shuffled";
 
-export default function VillasGridView({ villas }: { villas: Accommodation[] }) {
+export default function VillasGridView({ villas: villaList }: { villas: Accommodation[] }) {
+  const villas = useShuffled(villaList);
   const { lang } = useLanguage();
   const t = translations[lang];
 

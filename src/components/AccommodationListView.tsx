@@ -9,9 +9,10 @@ import type { Hotel } from "@/data/hotels";
 import type { Activity } from "@/data/activities";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
+import { useShuffled } from "@/lib/use-shuffled";
 
 export default function AccommodationListView({
-  villas,
+  villas: villaList,
   hotels,
   activities,
 }: {
@@ -21,6 +22,7 @@ export default function AccommodationListView({
 }) {
   const { lang } = useLanguage();
   const t = translations[lang].accommodationPage;
+  const villas = useShuffled(villaList);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">

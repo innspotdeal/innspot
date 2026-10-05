@@ -44,7 +44,8 @@ function rowToProgram(row: ProgramRow): CorporateProgram {
 
 export async function listPrograms(): Promise<CorporateProgram[]> {
   const result = await pool.query<ProgramRow>(
-    "SELECT * FROM corporate_programs ORDER BY sort_order ASC, name ASC"
+    // برنامج الكاستم (is_builder) دايمًا آخر واحد مهما كان ترتيبه
+    "SELECT * FROM corporate_programs ORDER BY is_builder ASC, sort_order ASC, name ASC"
   );
   return result.rows.map(rowToProgram);
 }

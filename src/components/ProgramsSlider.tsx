@@ -84,9 +84,11 @@ export default function ProgramsSlider({
           <div className="mb-3 line-clamp-2 text-2xl font-bold text-[#0d0925]">{name}</div>
           <p className="mb-4 line-clamp-3 leading-relaxed text-[#4e4a67]">{description}</p>
           <p className="mb-5 text-sm font-extrabold text-brand-orange">
-            {startingPrice
-              ? t.programCard.startsFrom(startingPrice.toLocaleString("en-US"))
-              : t.programCard.customPrice}
+            {program.isTicket && program.ticketPrice > 0
+              ? t.programCard.ticketPrice(program.ticketPrice.toLocaleString("en-US"))
+              : startingPrice
+                ? t.programCard.startsFrom(startingPrice.toLocaleString("en-US"))
+                : t.programCard.customPrice}
           </p>
           <Link
             href={`/corporate-trips/${program.id}`}

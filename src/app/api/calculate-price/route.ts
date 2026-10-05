@@ -9,6 +9,7 @@ const MESSAGES: Record<Lang, Record<string, string>> = {
     invalidRequest: "بيانات الطلب غير صالحة",
     selectProgram: "يرجى اختيار برنامج الرحلة",
     programNotFound: "برنامج الرحلة غير موجود",
+    ticketProgram: "البرنامج ده بتذاكر بسعر ثابت للفرد — مش محتاج حاسبة",
     peopleInvalid: "عدد الأفراد يجب أن يكون رقمًا صحيحًا موجبًا",
     minPeople: `الحد الأدنى للحجز ${MIN_PEOPLE} فرد`,
   },
@@ -16,6 +17,7 @@ const MESSAGES: Record<Lang, Record<string, string>> = {
     invalidRequest: "Invalid request data",
     selectProgram: "Please select a trip program",
     programNotFound: "Trip program not found",
+    ticketProgram: "This program is sold as tickets at a fixed price per person",
     peopleInvalid: "Number of people must be a positive whole number",
     minPeople: `Minimum booking is ${MIN_PEOPLE} people`,
   },
@@ -53,6 +55,10 @@ export async function POST(request: Request) {
   const program = await getProgramById(programId);
   if (!program) {
     return NextResponse.json({ ok: false, error: t.programNotFound }, { status: 400 });
+  }
+
+  if (program.isTicket) {
+    return NextResponse.json({ ok: false, error: t.ticketProgram }, { status: 400 });
   }
 
   const peopleNumber = Number(people);

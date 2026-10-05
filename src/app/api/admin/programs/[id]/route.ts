@@ -19,6 +19,7 @@ function parseUpdateInput(body: unknown): ProgramUpdateInput {
   if (b.includesEn !== undefined) update.includesEn = toList(b.includesEn);
   if (b.images !== undefined) update.images = toImageList(b.images);
   if (b.isCustom !== undefined) update.isCustom = Boolean(b.isCustom);
+  if (b.isTicket !== undefined) update.isTicket = Boolean(b.isTicket);
 
   return update;
 }

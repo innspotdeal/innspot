@@ -20,6 +20,7 @@ type NewProgramForm = {
   includes: string;
   includesEn: string;
   isCustom: boolean;
+  isTicket: boolean;
 };
 
 const emptyForm: NewProgramForm = {
@@ -36,6 +37,7 @@ const emptyForm: NewProgramForm = {
   includes: "",
   includesEn: "",
   isCustom: false,
+  isTicket: false,
 };
 
 type EditProgramForm = {
@@ -52,6 +54,7 @@ type EditProgramForm = {
   includes: string;
   includesEn: string;
   isCustom: boolean;
+  isTicket: boolean;
 };
 
 function programToEditForm(p: CorporateProgram): EditProgramForm {
@@ -69,6 +72,7 @@ function programToEditForm(p: CorporateProgram): EditProgramForm {
     includes: p.includes.join("\n"),
     includesEn: p.includesEn.join("\n"),
     isCustom: p.isCustom,
+    isTicket: p.isTicket,
   };
 }
 
@@ -167,7 +171,11 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
       setForm(emptyForm);
       setNewImages([]);
       setShowAddForm(false);
-      flash("تمت إضافة البرنامج — روح صفحة التسعير عشان تحدد سعره لو مش مخصّص (Custom)");
+      flash(
+        data.program.isTicket
+          ? "تمت إضافة برنامج التذاكر — روح صفحة التسعير عشان تحدد سعر التذكرة"
+          : "تمت إضافة البرنامج — روح صفحة التسعير عشان تحدد سعره لو مش مخصّص (Custom)"
+      );
     } catch {
       flash("تعذر الاتصال بالسيرفر", true);
     } finally {
@@ -263,6 +271,14 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
             />
             برنامج مخصّص بالكامل (Custom) — من غير سعر ثابت للفرد
           </label>
+          <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
+            <input
+              type="checkbox"
+              checked={form.isTicket}
+              onChange={(e) => setForm({ ...form, isTicket: e.target.checked })}
+            />
+            برنامج تذاكر — سعر ثابت للفرد من غير حاسبة (السعر بيتحدد من صفحة التسعير)
+          </label>
 
           <div className="sm:col-span-2">
             <button
@@ -292,7 +308,13 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
               <tr className="border-t border-black/5">
                 <td className="px-4 py-3 font-semibold text-brand-blue">{program.name}</td>
                 <td className="px-4 py-3 text-neutral-600">{program.duration || "—"}</td>
-                <td className="px-4 py-3 text-neutral-600">{program.isCustom ? "مخصّص" : "سعر ثابت"}</td>
+                <td className="px-4 py-3 text-neutral-600">
+                  {program.isTicket
+                    ? "تذاكر"
+                    : program.isCustom
+                      ? "مخصّص"
+                      : "بحاسبة السعر"}
+                </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-2">
                     <button
@@ -396,6 +418,19 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
                           }
                         />
                         برنامج مخصّص (سعر بالطلب — من غير حاسبة سعر)
+                      </label>
+                      <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
+                        <input
+                          type="checkbox"
+                          checked={editForms[program.id]?.isTicket ?? false}
+                          onChange={(e) =>
+                            setEditForms((prev) => ({
+                              ...prev,
+                              [program.id]: { ...prev[program.id], isTicket: e.target.checked },
+                            }))
+                          }
+                        />
+                        برنامج تذاكر — سعر ثابت للفرد من غير حاسبة (السعر بيتحدد من صفحة التسعير)
                       </label>
                       <div className="sm:col-span-2">
                         <label className="mb-1 block text-sm font-semibold text-neutral-700">الصور</label>

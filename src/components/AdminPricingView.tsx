@@ -11,7 +11,13 @@ const TIER_KIND_LABELS: Record<TierKind, string> = {
 };
 const TIER_KIND_LIST: TierKind[] = ["breakfast", "lunch", "tickets"];
 
-type ProgramSummary = { id: string; name: string; isCustom: boolean };
+type ProgramSummary = {
+  id: string;
+  name: string;
+  isCustom: boolean;
+  isTicket: boolean;
+  ticketPrice: number;
+};
 
 const emptyPricing: ProgramPricing = {
   breakfastPerPerson: 0,
@@ -50,6 +56,11 @@ export default function AdminPricingView({
     for (const p of programs) map[p.id] = initialProgramTiers[p.id] ?? [];
     return map;
   });
+  const [ticketPrices, setTicketPrices] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      programs.filter((p) => p.isTicket).map((p) => [p.id, p.ticketPrice > 0 ? String(p.ticketPrice) : ""])
+    )
+  );
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [peoplePerCar, setPeoplePerCar] = useState(String(initialSettings.peoplePerCar));
   const [marginTiers, setMarginTiers] = useState<MarginTier[]>(
@@ -90,6 +101,19 @@ export default function AdminPricingView({
       });
       if (!data.ok) flash(data.error || "حدث خطأ", true);
       else flash("تم حفظ التسعير");
+    } catch {
+      flash("تعذر الاتصال بالسيرفر", true);
+    } finally {
+      setSavingProgram(null);
+    }
+  }
+
+  async function handleSaveTicketPrice(programId: string) {
+    setSavingProgram(programId);
+    try {
+      const data = await patchPricing({ ticketPrices: { [programId]: ticketPrices[programId] ?? "" } });
+      if (!data.ok) flash(data.error || "حدث خطأ", true);
+      else flash("تم حفظ سعر التذكرة");
     } catch {
       flash("تعذر الاتصال بالسيرفر", true);
     } finally {
@@ -179,6 +203,35 @@ export default function AdminPricingView({
             <tbody>
               {programs.map((program) => {
                 const pricing = programPricing[program.id] ?? emptyPricing;
+                if (program.isTicket) {
+                  return (
+                    <tr key={program.id} className="border-t border-black/5">
+                      <td className="px-3 py-3 font-semibold text-brand-blue">{program.name}</td>
+                      <td colSpan={3} className="px-3 py-3">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <span className="text-neutral-500">سعر التذكرة للفرد</span>
+                          <input
+                            type="number"
+                            min={0}
+                            value={ticketPrices[program.id] ?? ""}
+                            onChange={(e) =>
+                              setTicketPrices((prev) => ({ ...prev, [program.id]: e.target.value }))
+                            }
+                            className="w-32 rounded-lg border border-black/10 px-3 py-1.5 text-sm outline-none focus:border-brand-blue"
+                          />
+                          <span className="text-neutral-500">جنيه</span>
+                          <button
+                            onClick={() => handleSaveTicketPrice(program.id)}
+                            disabled={savingProgram === program.id}
+                            className="rounded-lg bg-brand-blue px-3 py-1.5 text-xs font-bold text-white transition hover:bg-brand-blue/90 disabled:opacity-60"
+                          >
+                            {savingProgram === program.id ? "جاري الحفظ..." : "حفظ"}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }
                 if (program.isCustom) {
                   return (
                     <tr key={program.id} className="border-t border-black/5">

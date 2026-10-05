@@ -13,7 +13,8 @@ import {
   setProgramAddonModes,
   type AddonMode,
 } from "@/lib/program-addons";
-import { listPrograms } from "@/lib/programs-repo";
+import { listPrograms, updateProgram } from "@/lib/programs-repo";
+import { toTicketPrice } from "@/lib/program-input";
 import { listAllProgramTiers, setProgramTiers, TIER_KINDS, type PriceTier, type TierKind } from "@/lib/pricing";
 
 export async function GET() {
@@ -29,7 +30,7 @@ export async function GET() {
 
   return NextResponse.json({
     ok: true,
-    programs: programs.map((p) => ({ id: p.id, name: p.name, isCustom: p.isCustom })),
+    programs: programs.map((p) => ({ id: p.id, name: p.name, isCustom: p.isCustom, isTicket: p.isTicket, ticketPrice: p.ticketPrice })),
     programPricing,
     programTiers,
     // قايمة الإضافات الموحدة (بتتعدل من /api/admin/custom-trip)
@@ -103,6 +104,14 @@ export async function PATCH(request: Request) {
         });
       }
       await setProgramTiers(programId, tiers);
+    }
+  }
+
+  // سعر التذكرة الثابت لبرامج التذاكر: { programId: سعر الفرد }
+  if (b.ticketPrices !== undefined) {
+    const entries = Object.entries((b.ticketPrices ?? {}) as Record<string, unknown>);
+    for (const [programId, price] of entries) {
+      await updateProgram(programId, { ticketPrice: toTicketPrice(price) });
     }
   }
 

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import ImageGallery from "@/components/ImageGallery";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import BookingForm from "@/components/BookingForm";
+import TicketBooking from "@/components/TicketBooking";
 import CheckIcon from "@/components/CheckIcon";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
@@ -39,6 +40,8 @@ export default function CorporateProgramDetailView({
   };
 
   const hasTimes = Boolean(program.startTime && program.endTime);
+  // برنامج تذاكر لسه سعره متحددش = مفيش مربع حجز، زرار الاستفسار بس
+  const hasTicketBox = program.isTicket && program.ticketPrice > 0;
 
   return (
     <div className="mx-auto max-w-4xl pt-4 sm:pt-6">
@@ -134,7 +137,14 @@ export default function CorporateProgramDetailView({
         )}
       </div>
 
-      {!program.isCustom && (
+      {/* برنامج التذاكر: سعر ثابت × عدد التذاكر وزرار الحجز جواه — من غير حاسبة */}
+      {hasTicketBox && (
+        <div id="booking" className="relative z-10 bg-white px-4 pt-8 pb-6 sm:px-8">
+          <TicketBooking name={name} ticketPrice={program.ticketPrice} />
+        </div>
+      )}
+
+      {!program.isTicket && !program.isCustom && (
         <div id="booking" className="relative z-10 bg-white px-4 pt-8 sm:px-8">
           <BookingForm
             programs={programs}
@@ -145,13 +155,15 @@ export default function CorporateProgramDetailView({
       )}
 
       {/* زرار الواتساب تحت الحاسبة */}
-      <div className="relative z-10 bg-white px-4 py-6 sm:px-8">
-        <WhatsAppButton
-          message={t.inquiry(name)}
-          label={t.programDetail.inquiryLabel}
-          className="w-full py-3.5 text-base"
-        />
-      </div>
+      {!hasTicketBox && (
+        <div className="relative z-10 bg-white px-4 py-6 sm:px-8">
+          <WhatsAppButton
+            message={t.inquiry(name)}
+            label={t.programDetail.inquiryLabel}
+            className="w-full py-3.5 text-base"
+          />
+        </div>
+      )}
     </div>
   );
 }

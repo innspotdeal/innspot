@@ -12,9 +12,9 @@ export const revalidate = 60;
 
 export default async function CorporateTripsPage() {
   const corporatePrograms = await listPrograms();
-  // "يبدأ من" لكل برنامج — البرامج المخصّصة مالهاش سعر ثابت فبتتشال
+  // "يبدأ من" لكل برنامج — المخصّصة مالهاش سعر ثابت، والتذاكر سعرها معروف فبيتشالوا
   const startingPrices = await getStartingPrices(
-    corporatePrograms.filter((p) => !p.isCustom).map((p) => p.id)
+    corporatePrograms.filter((p) => !p.isCustom && !p.isTicket).map((p) => p.id)
   );
   return (
     <CorporateTripsListView corporatePrograms={corporatePrograms} startingPrices={startingPrices} />

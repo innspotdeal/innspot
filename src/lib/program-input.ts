@@ -46,3 +46,9 @@ export function itineraryToText(steps: ItineraryStep[], lang: "ar" | "en"): stri
     })
     .join("\n");
 }
+
+// سعر التذكرة: رقم مش سالب — أي حاجة تانية (فاضي/نص) = صفر، يعني مش برنامج تذاكر
+export function toTicketPrice(value: unknown): number {
+  const n = typeof value === "string" ? Number(value.trim()) : Number(value);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}

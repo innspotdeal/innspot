@@ -18,7 +18,7 @@ export default async function AdminPricingPage() {
 
   return (
     <AdminPricingView
-      programs={programs.map((p) => ({ id: p.id, name: p.name, isCustom: p.isCustom }))}
+      programs={programs.map((p) => ({ id: p.id, name: p.name, isCustom: p.isCustom, isTicket: p.isTicket, ticketPrice: p.ticketPrice }))}
       initialProgramPricing={programPricing}
       initialProgramTiers={programTiers}
       addons={catalogue.map((o) => ({

@@ -20,6 +20,8 @@ type ProgramRow = {
   images: string[];
   is_custom: boolean;
   is_builder: boolean;
+  is_ticket: boolean | null;
+  ticket_price: string | null;
 };
 
 function rowToProgram(row: ProgramRow): CorporateProgram {
@@ -39,6 +41,9 @@ function rowToProgram(row: ProgramRow): CorporateProgram {
     images: row.images ?? [],
     isCustom: row.is_custom,
     isBuilder: row.is_builder ?? false,
+    // الأعمدة دي ممكن متكونش اتعملت لسه قبل الترحيل — و NUMERIC بيرجع نص من pg
+    isTicket: row.is_ticket ?? false,
+    ticketPrice: Number(row.ticket_price ?? 0),
   };
 }
 
@@ -73,13 +78,14 @@ export type ProgramInput = {
   includesEn: string[];
   images: string[];
   isCustom: boolean;
+  isTicket: boolean;
 };
 
 export async function createProgram(input: ProgramInput): Promise<CorporateProgram> {
   const result = await pool.query<ProgramRow>(
     `INSERT INTO corporate_programs
-      (id, name, name_en, description, description_en, itinerary, start_time, end_time, duration, duration_en, includes, includes_en, images, is_custom, sort_order)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,
+      (id, name, name_en, description, description_en, itinerary, start_time, end_time, duration, duration_en, includes, includes_en, images, is_custom, is_ticket, sort_order)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,
        (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM corporate_programs))
      RETURNING *`,
     [
@@ -97,12 +103,14 @@ export async function createProgram(input: ProgramInput): Promise<CorporateProgr
       input.includesEn,
       input.images,
       input.isCustom,
+      input.isTicket,
     ]
   );
   return rowToProgram(result.rows[0]);
 }
 
-export type ProgramUpdateInput = Partial<Omit<ProgramInput, "id">>;
+// سعر التذكرة مش في فورم البرنامج — بيتحدد من صفحة التسعير
+export type ProgramUpdateInput = Partial<Omit<ProgramInput, "id">> & { ticketPrice?: number };
 
 export async function updateProgram(
   id: string,
@@ -122,6 +130,8 @@ export async function updateProgram(
     includesEn: "includes_en",
     images: "images",
     isCustom: "is_custom",
+    isTicket: "is_ticket",
+    ticketPrice: "ticket_price",
   };
 
   const sets: string[] = [];

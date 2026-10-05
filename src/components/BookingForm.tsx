@@ -106,7 +106,8 @@ export default function BookingForm({
           >
             <option value="">{t.programPlaceholder}</option>
             {programs
-              .filter((program) => !program.isCustom)
+              // المخصّص مالوش سعر ثابت، والتذاكر سعرها ثابت من غير حاسبة
+              .filter((program) => !program.isCustom && !program.isTicket)
               .map((program) => (
                 <option key={program.id} value={program.id}>
                   {lang === "en" ? program.nameEn : program.name}

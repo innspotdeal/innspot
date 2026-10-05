@@ -40,6 +40,10 @@ export type CorporateProgram = {
   // true للبرنامج اللي صفحته عبارة عن مكوّن رحلة تفاعلي (Custom Program)
   // بدل مخطط الرحلة العادي
   isBuilder: boolean;
+  // true لبرنامج التذاكر (أفراد مش مجموعة): صفحته بتعرض سعر ثابت للفرد وعدد التذاكر
+  // بدل حاسبة السعر. السعر نفسه (ticketPrice) بيتحدد من صفحة التسعير
+  isTicket: boolean;
+  ticketPrice: number;
 };
 
 const step = (title: string, titleEn: string, detail = "", detailEn = ""): ItineraryStep => ({
@@ -106,6 +110,8 @@ export const corporatePrograms: CorporateProgram[] = [
     includesEn: ["Reserve entry tickets", "A trip supervisor"],
     images: ["/images/safari-waterfall.jpg", "/images/lake-boats.jpg", "/images/safari-dunes.jpg"],
     isCustom: false,
+    isTicket: false,
+    ticketPrice: 0,
     isBuilder: false,
   },
   {
@@ -154,6 +160,8 @@ export const corporatePrograms: CorporateProgram[] = [
     includesEn: ["Safari vehicles", "Reserve entry tickets", "A trip supervisor"],
     images: ["/images/safari-dunes.jpg", "/images/safari-waterfall.jpg", "/images/lake-dramatic.jpg"],
     isCustom: false,
+    isTicket: false,
+    ticketPrice: 0,
     isBuilder: false,
   },
   {
@@ -173,6 +181,8 @@ export const corporatePrograms: CorporateProgram[] = [
     includesEn: [],
     images: ["/images/safari-dunes.jpg", "/images/lake-dramatic.jpg"],
     isCustom: true,
+    isTicket: false,
+    ticketPrice: 0,
     // صفحته مكوّن رحلة تفاعلي مش مخطط عادي
     isBuilder: true,
   },

@@ -83,6 +83,9 @@ export type Program = {
   includesEn: string[];
   images: string[];
   isCustom: boolean;
+  // برنامج تذاكر: سعر ثابت للفرد من غير حاسبة — السعر بيتعدل من /api/admin/pricing
+  isTicket: boolean;
+  ticketPrice: number;
 };
 
 export type TransportVehicle = {
@@ -305,6 +308,8 @@ export function createInnspotClient(config: InnspotConfig = {}) {
         // بيستبدل كل إعدادات الإضافات للبرنامج — ابعت كل الإضافات، واللي مش هتبعته يرجع "متاحة"
         // أسعار الإضافات نفسها بتتعدل من customTrip.update
         programAddons?: Record<string, Record<string, AddonMode>>;
+        // سعر التذكرة للفرد لبرامج التذاكر (isTicket) — صفر = لسه متحددش
+        ticketPrices?: Record<string, number>;
         settings?: { peoplePerCar?: number; marginTiers?: MarginTier[] };
       }) => request<{ ok: true }>("PATCH", "/api/admin/pricing", patch),
     },

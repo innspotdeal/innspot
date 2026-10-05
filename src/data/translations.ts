@@ -56,6 +56,7 @@ export const translations = {
     },
     programCard: {
       startsFrom: (price: string) => `يبدأ من ${price} ج للفرد`,
+      ticketPrice: (price: string) => `التذكرة ${price} ج للفرد`,
       customPrice: "السعر حسب اختيارك",
       fullDetails: "البرنامج كامل والتفاصيل ←",
       statStops: "محطات",
@@ -72,6 +73,18 @@ export const translations = {
     programDetail: {
       back: "→ العودة إلى رحلات شركات",
       inquiryLabel: "استفسر عن هذا البرنامج",
+    },
+    ticketBooking: {
+      heading: "احجز تذكرتك",
+      pricePerPerson: "سعر التذكرة للفرد",
+      ticketsLabel: "عدد التذاكر",
+      decrease: "تذكرة أقل",
+      increase: "تذكرة زيادة",
+      totalLabel: "الإجمالي",
+      currency: (v: number) => `${v.toLocaleString("ar-EG")} جنيه`,
+      bookCta: "احجز على واتساب",
+      whatsappMessage: (name: string, tickets: number, total: string) =>
+        `مرحبًا، أرغب في حجز تذاكر:\nالبرنامج: ${name}\nعدد التذاكر: ${tickets}\nالإجمالي: ${total}`,
     },
     bookingForm: {
       heading: "احسب سعر رحلتك",
@@ -172,6 +185,7 @@ export const translations = {
     },
     programCard: {
       startsFrom: (price: string) => `From ${price} EGP per person`,
+      ticketPrice: (price: string) => `Ticket: ${price} EGP per person`,
       customPrice: "Price based on your choices",
       fullDetails: "Full program & details →",
       statStops: "Stops",
@@ -188,6 +202,18 @@ export const translations = {
     programDetail: {
       back: "← Back to Corporate Trips",
       inquiryLabel: "Ask about this program",
+    },
+    ticketBooking: {
+      heading: "Book your ticket",
+      pricePerPerson: "Ticket price per person",
+      ticketsLabel: "Number of tickets",
+      decrease: "One ticket less",
+      increase: "One more ticket",
+      totalLabel: "Total",
+      currency: (v: number) => `EGP ${v.toLocaleString("en-US")}`,
+      bookCta: "Book on WhatsApp",
+      whatsappMessage: (name: string, tickets: number, total: string) =>
+        `Hello, I'd like to book tickets:\nProgram: ${name}\nTickets: ${tickets}\nTotal: ${total}`,
     },
     bookingForm: {
       heading: "Calculate Your Trip Price",

@@ -91,7 +91,8 @@ GET /api/admin/ping
 - **الـ `PATCH` جزئي**: الحقول اللي تبعتها بس هي اللي بتتغير.
 - **ترتيب الصور مهم**: أول صورة في `images[]` هي صورة الغلاف.
 - **`PATCH /api/admin/pricing`** بياخد أي مجموعة من `programPricing` /
-  `programTiers` / `programAddons` / `settings`، وبيحدّث اللي بعته بس.
+  `programTiers` / `programAddons` / `ticketPrices` / `settings`، وبيحدّث اللي بعته بس.
+  `ticketPrices` = `{ "programId": سعر الفرد }` لبرامج التذاكر (`isTicket: true`).
   جوه كل قسم، البرنامج اللي بتبعته **بيتستبدل بالكامل** (شرائحه كلها، أو إعدادات إضافاته كلها).
 - **رفع الصور** `multipart/form-data` بحقل اسمه `file`. الحد 8 ميجا،
   والأنواع: jpeg / png / webp / avif / gif. بيرجّع `{"ok": true, "url": "..."}`

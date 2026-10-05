@@ -43,6 +43,7 @@ function parseProgramInput(
       includesEn: toList(b.includesEn),
       images: toImageList(b.images),
       isCustom: Boolean(b.isCustom),
+      isTicket: Boolean(b.isTicket),
     },
   };
 }

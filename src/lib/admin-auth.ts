@@ -29,6 +29,8 @@ function safeEqual(a: string, b: string): boolean {
 // بيدعم أكتر من حساب أدمن مع بعض عن طريق متغير البيئة ADMIN_USERS
 // الصيغة: "user1:pass1,user2:pass2:sales,user3:pass3:admin"
 // الـ role جزء اختياري في الآخر (admin أو sales) — لو اتشال بيبقى "admin" افتراضيًا
+// حساب sales مالوش دخول على الموقع (الحجز والفواتير في الـ ERP)، بس بنفضل نقرا اللاحقة
+// عشان "user:pass:sales" ميتفهمش كأدمن باسورده "pass:sales"
 // (لسه بيدعم الصيغة القديمة ADMIN_USERNAME/ADMIN_PASSWORD لحساب أدمن واحد لو ADMIN_USERS مش موجود)
 function parseAccount(pair: string): AdminAccount | null {
   const parts = pair.split(":").map((p) => p.trim());

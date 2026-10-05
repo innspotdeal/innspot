@@ -30,6 +30,14 @@ export async function POST(request: Request) {
     );
   }
 
+  // الحجز والفواتير بقوا في الـ ERP — حساب المبيعات مالوش شغل في لوحة الموقع
+  if (account.role !== "admin") {
+    return NextResponse.json(
+      { ok: false, error: "الحساب ده للمبيعات — الحجز والفواتير بقوا من سيستم الـ ERP" },
+      { status: 403 }
+    );
+  }
+
   const { token, maxAge } = createSessionToken(account);
   const response = NextResponse.json({ ok: true, role: account.role });
   response.cookies.set(ADMIN_SESSION_COOKIE, token, {

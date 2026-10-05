@@ -3,9 +3,6 @@ import type { NextRequest } from "next/server";
 import { ADMIN_SESSION_COOKIE, getSession } from "@/lib/admin-auth";
 import { ERP_API_KEY_HEADER, ERP_CLIENT_HEADER, verifyErpKey } from "@/lib/erp-auth";
 
-// المسارات المسموحة لدور "sales" بس — أي حاجة تانية تحت /admin أو /api/admin ممنوعة عليه
-const SALES_ALLOWED_PREFIXES = ["/admin/bookings", "/api/admin/bookings"];
-
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -47,16 +44,13 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // حماية على مستوى السيرفر: مستخدم sales ممنوع من أي صفحة أدمن غير الحجوزات
-  if (session.role === "sales") {
-    const allowed = SALES_ALLOWED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
-    if (!allowed) {
-      if (isApi) {
-        return NextResponse.json({ ok: false, error: "غير مصرح لك بالوصول لده" }, { status: 403 });
-      }
-      const bookingsUrl = new URL("/admin/bookings", request.url);
-      return NextResponse.redirect(bookingsUrl);
+  // الحجز والفواتير بقوا في الـ ERP، فحساب المبيعات مالوش حاجة هنا — بيرجع لتسجيل الدخول
+  // (ولو معاه جلسة قديمة من قبل التغيير، بتتقفل هنا)
+  if (session.role !== "admin") {
+    if (isApi) {
+      return NextResponse.json({ ok: false, error: "غير مصرح لك بالوصول لده" }, { status: 403 });
     }
+    return NextResponse.redirect(new URL("/admin/login", request.url));
   }
 
   return pass();

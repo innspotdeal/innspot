@@ -1,7 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import ImageGallery from "@/components/ImageGallery";
+import RoomDialog from "@/components/RoomDialog";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import AmenityIcon from "@/components/AmenityIcon";
 import { translations } from "@/data/translations";
@@ -16,6 +19,8 @@ export default function HotelDetailView({ item }: { item: Hotel }) {
   const name = lang === "en" ? item.nameEn : item.name;
   const description = lang === "en" ? item.descriptionEn : item.description;
   const amenities = lang === "en" ? item.amenitiesEn : item.amenities;
+  // الغرفة المفتوحة دلوقتي (رقمها في القايمة) — null = مفيش
+  const [openRoom, setOpenRoom] = useState<number | null>(null);
 
   return (
     <div className="mx-auto max-w-4xl pt-4 sm:pt-6">
@@ -59,40 +64,53 @@ export default function HotelDetailView({ item }: { item: Hotel }) {
               const roomDescription =
                 lang === "en" ? roomType.descriptionEn || roomType.description : roomType.description;
               return (
-                <li
-                  key={`${roomType.name}-${index}`}
-                  className="flex flex-col gap-2 overflow-hidden rounded-2xl border border-black/5 bg-neutral-50"
-                >
-                  {roomType.images.length > 0 && (
-                    <div className="relative">
-                      <ImageGallery
-                        images={roomType.images}
-                        alt={roomName}
-                        aspectClassName="aspect-[4/3]"
-                        counterPosition="end"
-                      />
-                    </div>
-                  )}
-                  <div className="flex flex-col gap-2 px-4 pb-4 pt-2 first:pt-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="font-bold text-brand-blue">{roomName}</p>
-                    {roomType.price > 0 && (
-                      <p className="shrink-0 text-end">
-                        <span className="font-extrabold text-brand-orange">
-                          {t.accommodationCard.currency(roomType.price)}
-                        </span>{" "}
-                        <span className="text-xs text-neutral-500">{t.accommodationCard.perNight}</span>
-                      </p>
+                <li key={`${roomType.name}-${index}`}>
+                  <button
+                    type="button"
+                    onClick={() => setOpenRoom(index)}
+                    className="group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-black/5 bg-neutral-50 text-start transition hover:border-brand-orange/40 hover:shadow-md"
+                  >
+                    {roomType.images.length > 0 && (
+                      <div className="relative aspect-[4/3] w-full overflow-hidden bg-neutral-100">
+                        <Image
+                          src={roomType.images[0]}
+                          alt={roomName}
+                          fill
+                          sizes="(max-width: 640px) 100vw, 400px"
+                          className="object-cover transition duration-300 group-hover:scale-105"
+                        />
+                        {roomType.images.length > 1 && (
+                          <span className="absolute end-3 bottom-3 flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">
+                            <i className="fi fi-sr-picture leading-none" aria-hidden="true" />
+                            {roomType.images.length}
+                          </span>
+                        )}
+                      </div>
                     )}
-                  </div>
-                  <p className="flex items-center gap-2 text-sm font-semibold text-neutral-600">
-                    <i className="fi fi-sr-user text-brand-orange" aria-hidden="true" />
-                    {t.accommodationCard.capacity(roomType.capacity)}
-                  </p>
-                  {roomDescription && (
-                    <p className="text-sm leading-relaxed text-neutral-600">{roomDescription}</p>
-                  )}
-                  </div>
+                    <div className="flex flex-1 flex-col gap-2 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="font-bold text-brand-blue">{roomName}</p>
+                        {roomType.price > 0 && (
+                          <p className="shrink-0 text-end">
+                            <span className="font-extrabold text-brand-orange">
+                              {t.accommodationCard.currency(roomType.price)}
+                            </span>{" "}
+                            <span className="text-xs text-neutral-500">{t.accommodationCard.perNight}</span>
+                          </p>
+                        )}
+                      </div>
+                      <p className="flex items-center gap-2 text-sm font-semibold text-neutral-600">
+                        <i className="fi fi-sr-user text-brand-orange" aria-hidden="true" />
+                        {t.accommodationCard.capacity(roomType.capacity)}
+                      </p>
+                      {roomDescription && (
+                        <p className="line-clamp-2 text-sm leading-relaxed text-neutral-600">{roomDescription}</p>
+                      )}
+                      <span className="mt-auto pt-1 text-sm font-bold text-brand-orange">
+                        {t.accommodationDetail.roomDetails} <span className="inline-block rtl:-scale-x-100">→</span>
+                      </span>
+                    </div>
+                  </button>
                 </li>
               );
             })}
@@ -123,6 +141,14 @@ export default function HotelDetailView({ item }: { item: Hotel }) {
           </ul>
         </div>
       </div>
+
+      {openRoom !== null && item.roomTypes[openRoom] && (
+        <RoomDialog
+          room={item.roomTypes[openRoom]}
+          hotelName={name}
+          onClose={() => setOpenRoom(null)}
+        />
+      )}
 
       <div className="sticky bottom-0 z-30 border-t border-black/5 bg-white/95 px-4 py-3 backdrop-blur sm:px-8">
         <WhatsAppButton message={t.inquiry(name)} className="w-full py-3.5 text-base" />

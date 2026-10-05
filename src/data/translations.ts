@@ -41,6 +41,10 @@ export const translations = {
       roomTypesHeading: "أنواع الغرف المتاحة",
       villaBadge: "فيلا",
       hotelBadge: "فندق",
+      roomDetails: "الصور والتفاصيل",
+      closeRoom: "إغلاق",
+      roomInquiryLabel: "استفسر عن الغرفة دي",
+      roomInquiry: (room: string, hotel: string) => `مرحبًا، أرغب في الاستفسار عن ${room} في ${hotel}`,
     },
     inquiry: (name: string) => `مرحبًا، أرغب في الاستفسار عن ${name}`,
     corporateTripsPage: {
@@ -153,6 +157,10 @@ export const translations = {
       roomTypesHeading: "Available Room Types",
       villaBadge: "Villa",
       hotelBadge: "Hotel",
+      roomDetails: "Photos & details",
+      closeRoom: "Close",
+      roomInquiryLabel: "Ask about this room",
+      roomInquiry: (room: string, hotel: string) => `Hello, I'd like to ask about the ${room} at ${hotel}`,
     },
     inquiry: (name: string) => `Hello, I'd like to ask about ${name}`,
     corporateTripsPage: {

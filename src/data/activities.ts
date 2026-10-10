@@ -12,7 +12,16 @@ export type Activity = {
   description: string;
   descriptionEn: string;
   image: string;
+  // سعر النشاط للفرد بالجنيه — 0 = مش بيظهر سعر، زرار الاستفسار بس
+  price: number;
+  duration: string;
+  durationEn: string;
+  // يشمل النشاط — عنصر لكل سطر
+  includes: string[];
+  includesEn: string[];
 };
+
+const noDetails = { price: 0, duration: "", durationEn: "", includes: [], includesEn: [] };
 
 export const activities: Activity[] = [
   {
@@ -22,6 +31,7 @@ export const activities: Activity[] = [
     description: "جولة سفاري مثيرة بين كثبان الصحراء الرملية، مناسبة للأفراد والعائلات.",
     descriptionEn: "An exciting safari tour among the desert's sand dunes, suitable for individuals and families.",
     image: "/images/safari-dunes.jpg",
+    ...noDetails,
   },
   {
     id: "activity-boat-ride",
@@ -30,6 +40,7 @@ export const activities: Activity[] = [
     description: "جولة هادئة بالقارب على بحيرة قارون، فرصة رائعة لمشاهدة الغروب.",
     descriptionEn: "A relaxing boat ride on Lake Qarun, a great chance to watch the sunset.",
     image: "/images/lake-boats.jpg",
+    ...noDetails,
   },
   {
     id: "activity-desert-camp",
@@ -38,5 +49,6 @@ export const activities: Activity[] = [
     description: "أمسية تخييم صحراوي أصيلة تحت النجوم مع فقرات ترفيهية.",
     descriptionEn: "An authentic desert camping evening under the stars with entertainment.",
     image: "/images/hero.jpg",
+    ...noDetails,
   },
 ];

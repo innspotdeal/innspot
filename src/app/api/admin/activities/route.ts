@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createActivity, listActivities, type ActivityInput } from "@/lib/activities-repo";
+import { parseActivityDetails } from "@/lib/activity-input";
 
 function slugify(text: string): string {
   return text
@@ -24,6 +25,9 @@ function parseActivityInput(
   const id = slugify(rawId);
   if (!id) return { ok: false, error: "تعذر تكوين معرّف صالح للنشاط" };
 
+  const details = parseActivityDetails(b);
+  if (!details.ok) return details;
+
   return {
     ok: true,
     data: {
@@ -33,6 +37,12 @@ function parseActivityInput(
       description: typeof b.description === "string" ? b.description.trim() : "",
       descriptionEn: typeof b.descriptionEn === "string" ? b.descriptionEn.trim() : "",
       image: typeof b.image === "string" ? b.image.trim() : "",
+      price: 0,
+      duration: "",
+      durationEn: "",
+      includes: [],
+      includesEn: [],
+      ...details.data,
     },
   };
 }

@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import AccommodationDetailView from "@/components/AccommodationDetailView";
 import HotelDetailView from "@/components/HotelDetailView";
+import ActivityDetailView from "@/components/ActivityDetailView";
 import { getVillaById } from "@/lib/villas-repo";
 import { getHotelById } from "@/lib/hotels-repo";
+import { getActivityById } from "@/lib/activities-repo";
 
 export const revalidate = 60;
 
@@ -13,6 +15,9 @@ async function findItem(id: string) {
 
   const hotel = await getHotelById(id);
   if (hotel) return { kind: "hotel" as const, item: hotel };
+
+  const activity = await getActivityById(id);
+  if (activity) return { kind: "activity" as const, item: activity };
 
   return null;
 }
@@ -49,6 +54,10 @@ export default async function AccommodationDetailPage({
 
   if (found.kind === "hotel") {
     return <HotelDetailView item={found.item} />;
+  }
+
+  if (found.kind === "activity") {
+    return <ActivityDetailView item={found.item} />;
   }
 
   return <AccommodationDetailView item={found.item} isVilla />;

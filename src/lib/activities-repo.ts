@@ -9,6 +9,12 @@ type ActivityRow = {
   description: string;
   description_en: string;
   image: string;
+  // NUMERIC بيرجع من pg كنص
+  price: string | null;
+  duration: string | null;
+  duration_en: string | null;
+  includes: string[] | null;
+  includes_en: string[] | null;
 };
 
 function rowToActivity(row: ActivityRow): Activity {
@@ -19,6 +25,11 @@ function rowToActivity(row: ActivityRow): Activity {
     description: row.description,
     descriptionEn: row.description_en,
     image: row.image,
+    price: Number(row.price ?? 0),
+    duration: row.duration ?? "",
+    durationEn: row.duration_en ?? "",
+    includes: row.includes ?? [],
+    includesEn: row.includes_en ?? [],
   };
 }
 
@@ -34,21 +45,28 @@ export async function getActivityById(id: string): Promise<Activity | null> {
   return result.rows[0] ? rowToActivity(result.rows[0]) : null;
 }
 
-export type ActivityInput = {
-  id: string;
-  name: string;
-  nameEn: string;
-  description: string;
-  descriptionEn: string;
-  image: string;
-};
+export type ActivityInput = Activity;
 
 export async function createActivity(input: ActivityInput): Promise<Activity> {
   const result = await pool.query<ActivityRow>(
-    `INSERT INTO activities (id, name, name_en, description, description_en, image, sort_order)
-     VALUES ($1,$2,$3,$4,$5,$6, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM activities))
+    `INSERT INTO activities
+      (id, name, name_en, description, description_en, image, price, duration, duration_en, includes, includes_en, sort_order)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,
+       (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM activities))
      RETURNING *`,
-    [input.id, input.name, input.nameEn, input.description, input.descriptionEn, input.image]
+    [
+      input.id,
+      input.name,
+      input.nameEn,
+      input.description,
+      input.descriptionEn,
+      input.image,
+      input.price,
+      input.duration,
+      input.durationEn,
+      input.includes,
+      input.includesEn,
+    ]
   );
   return rowToActivity(result.rows[0]);
 }
@@ -65,6 +83,11 @@ export async function updateActivity(
     description: "description",
     descriptionEn: "description_en",
     image: "image",
+    price: "price",
+    duration: "duration",
+    durationEn: "duration_en",
+    includes: "includes",
+    includesEn: "includes_en",
   };
 
   const sets: string[] = [];

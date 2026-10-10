@@ -8,9 +8,18 @@ import { useLanguage } from "@/lib/language-context";
 const MAX_TICKETS = 50;
 
 // برنامج التذاكر: سعر ثابت للفرد × عدد التذاكر — من غير حاسبة سعر
-export default function TicketBooking({ name, ticketPrice }: { name: string; ticketPrice: number }) {
+// النشاط بيستخدم نفس المربع بنصوصه هو (copy="activityBooking")
+export default function TicketBooking({
+  name,
+  ticketPrice,
+  copy = "ticketBooking",
+}: {
+  name: string;
+  ticketPrice: number;
+  copy?: "ticketBooking" | "activityBooking";
+}) {
   const { lang } = useLanguage();
-  const t = translations[lang].ticketBooking;
+  const t = translations[lang][copy];
   const [tickets, setTickets] = useState(1);
 
   const total = ticketPrice * tickets;

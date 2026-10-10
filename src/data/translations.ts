@@ -34,6 +34,7 @@ export const translations = {
       weekendPrice: "سعر نهاية الأسبوع",
       currency: (v: number) => `${v.toLocaleString("ar-EG")} جنيه`,
       perNight: "/ الليلة",
+      perPerson: "/ للفرد",
     },
     accommodationDetail: {
       back: "→ العودة إلى أفراد وإقامة",
@@ -45,6 +46,9 @@ export const translations = {
       closeRoom: "إغلاق",
       roomInquiryLabel: "استفسر عن الغرفة دي",
       roomInquiry: (room: string, hotel: string) => `مرحبًا، أرغب في الاستفسار عن ${room} في ${hotel}`,
+      activityBadge: "نشاط",
+      activityIncludesHeading: "يشمل النشاط",
+      activityInquiryLabel: "استفسر عن النشاط ده",
     },
     inquiry: (name: string) => `مرحبًا، أرغب في الاستفسار عن ${name}`,
     corporateTripsPage: {
@@ -85,6 +89,19 @@ export const translations = {
       bookCta: "احجز على واتساب",
       whatsappMessage: (name: string, tickets: number, total: string) =>
         `مرحبًا، أرغب في حجز تذاكر:\nالبرنامج: ${name}\nعدد التذاكر: ${tickets}\nالإجمالي: ${total}`,
+    },
+    // نفس شكل ticketBooking بالظبط — نفس مربع الحجز بنصوص النشاط
+    activityBooking: {
+      heading: "احجز النشاط",
+      pricePerPerson: "السعر للفرد",
+      ticketsLabel: "عدد الأفراد",
+      decrease: "فرد أقل",
+      increase: "فرد زيادة",
+      totalLabel: "الإجمالي",
+      currency: (v: number) => `${v.toLocaleString("ar-EG")} جنيه`,
+      bookCta: "احجز على واتساب",
+      whatsappMessage: (name: string, people: number, total: string) =>
+        `مرحبًا، أرغب في حجز نشاط:\nالنشاط: ${name}\nعدد الأفراد: ${people}\nالإجمالي: ${total}`,
     },
     bookingForm: {
       heading: "احسب سعر رحلتك",
@@ -163,6 +180,7 @@ export const translations = {
       weekendPrice: "Weekend Price",
       currency: (v: number) => `EGP ${v.toLocaleString("en-US")}`,
       perNight: "/ night",
+      perPerson: "/ person",
     },
     accommodationDetail: {
       back: "← Back to Accommodation",
@@ -174,6 +192,9 @@ export const translations = {
       closeRoom: "Close",
       roomInquiryLabel: "Ask about this room",
       roomInquiry: (room: string, hotel: string) => `Hello, I'd like to ask about the ${room} at ${hotel}`,
+      activityBadge: "Activity",
+      activityIncludesHeading: "Activity Includes",
+      activityInquiryLabel: "Ask about this activity",
     },
     inquiry: (name: string) => `Hello, I'd like to ask about ${name}`,
     corporateTripsPage: {
@@ -214,6 +235,18 @@ export const translations = {
       bookCta: "Book on WhatsApp",
       whatsappMessage: (name: string, tickets: number, total: string) =>
         `Hello, I'd like to book tickets:\nProgram: ${name}\nTickets: ${tickets}\nTotal: ${total}`,
+    },
+    activityBooking: {
+      heading: "Book this activity",
+      pricePerPerson: "Price per person",
+      ticketsLabel: "Number of people",
+      decrease: "One person less",
+      increase: "One more person",
+      totalLabel: "Total",
+      currency: (v: number) => `EGP ${v.toLocaleString("en-US")}`,
+      bookCta: "Book on WhatsApp",
+      whatsappMessage: (name: string, people: number, total: string) =>
+        `Hello, I'd like to book an activity:\nActivity: ${name}\nPeople: ${people}\nTotal: ${total}`,
     },
     bookingForm: {
       heading: "Calculate Your Trip Price",

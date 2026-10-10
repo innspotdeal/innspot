@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { deleteActivity, updateActivity, type ActivityUpdateInput } from "@/lib/activities-repo";
+import { parseActivityDetails } from "@/lib/activity-input";
 
-function parseUpdateInput(body: unknown): ActivityUpdateInput {
+function parseUpdateInput(
+  body: unknown
+): { ok: true; data: ActivityUpdateInput } | { ok: false; error: string } {
   const b = (body ?? {}) as Record<string, unknown>;
-  const update: ActivityUpdateInput = {};
+
+  const details = parseActivityDetails(b);
+  if (!details.ok) return details;
+  const update: ActivityUpdateInput = { ...details.data };
 
   if (typeof b.name === "string") update.name = b.name.trim();
   if (typeof b.nameEn === "string") update.nameEn = b.nameEn.trim();
@@ -11,7 +17,11 @@ function parseUpdateInput(body: unknown): ActivityUpdateInput {
   if (typeof b.descriptionEn === "string") update.descriptionEn = b.descriptionEn.trim();
   if (typeof b.image === "string") update.image = b.image.trim();
 
-  return update;
+  if (update.name === "" || update.nameEn === "") {
+    return { ok: false, error: "اسم النشاط (عربي وإنجليزي) مطلوب" };
+  }
+
+  return { ok: true, data: update };
 }
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -24,7 +34,12 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     return NextResponse.json({ ok: false, error: "بيانات غير صالحة" }, { status: 400 });
   }
 
-  const activity = await updateActivity(id, parseUpdateInput(body));
+  const parsed = parseUpdateInput(body);
+  if (!parsed.ok) {
+    return NextResponse.json({ ok: false, error: parsed.error }, { status: 400 });
+  }
+
+  const activity = await updateActivity(id, parsed.data);
   if (!activity) {
     return NextResponse.json({ ok: false, error: "النشاط غير موجود" }, { status: 404 });
   }

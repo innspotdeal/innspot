@@ -64,7 +64,19 @@ export type Activity = {
   description: string;
   descriptionEn: string;
   image: string;
+  // سعر النشاط للفرد بالجنيه (0 = مش بيظهر سعر، زرار الاستفسار بس)
+  price: number;
+  duration: string;
+  durationEn: string;
+  // يشمل النشاط — عنصر لكل خانة
+  includes: string[];
+  includesEn: string[];
 };
+
+// السعر والتفاصيل اختياريين وقت الإضافة — الموقع بيحط صفر/فاضي
+type ActivityDetailKey = "price" | "duration" | "durationEn" | "includes" | "includesEn";
+export type ActivityCreate = Omit<Activity, "id" | ActivityDetailKey> &
+  Partial<Pick<Activity, ActivityDetailKey>> & { id?: string };
 
 export type ItineraryStep = { title: string; titleEn: string; detail: string; detailEn: string };
 
@@ -276,7 +288,7 @@ export function createInnspotClient(config: InnspotConfig = {}) {
       "hotels",
       "hotel"
     ),
-    activities: resource<Activity, Omit<Activity, "id"> & { id?: string }, Partial<Omit<Activity, "id">>>(
+    activities: resource<Activity, ActivityCreate, Partial<Omit<Activity, "id">>>(
       "/api/admin/activities",
       "activities",
       "activity"

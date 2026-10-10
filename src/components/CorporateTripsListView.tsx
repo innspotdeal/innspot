@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import ProgramsSlider from "@/components/ProgramsSlider";
+import ProgramsGrid from "@/components/ProgramsGrid";
 import { clients } from "@/data/clients";
 import type { CorporateProgram } from "@/data/programs";
 import { navLinks } from "@/data/site";
@@ -202,7 +202,7 @@ export default function CorporateTripsListView({
         </div>
 
         <div className="mt-10">
-          <ProgramsSlider programs={corporatePrograms} startingPrices={startingPrices} />
+          <ProgramsGrid programs={corporatePrograms} startingPrices={startingPrices} />
         </div>
       </main>
     </div>

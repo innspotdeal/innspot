@@ -47,7 +47,38 @@ export async function getActivityById(id: string): Promise<Activity | null> {
 
 export type ActivityInput = Activity;
 
+// أعمدة السعر والتفاصيل (نفس scripts/activity-details-migration.mjs): لو الـ migration
+// متشغّلش على قاعدة البيانات، أول حفظ من الأدمن أو الـ ERP بيضيفها هو.
+// القراية مش محتاجاها (rowToActivity بيحط صفر/فاضي)، فبنتأكد قبل الكتابة بس — ومرة واحدة لكل سيرفر
+const DETAIL_COLUMNS = ["price", "duration", "duration_en", "includes", "includes_en"];
+let detailColumnsReady: Promise<void> | null = null;
+
+function ensureDetailColumns(): Promise<void> {
+  detailColumnsReady ??= (async () => {
+    const { rows } = await pool.query<{ count: number }>(
+      `SELECT COUNT(*)::int AS count FROM information_schema.columns
+       WHERE table_schema = current_schema() AND table_name = 'activities' AND column_name = ANY($1)`,
+      [DETAIL_COLUMNS]
+    );
+    if (rows[0].count === DETAIL_COLUMNS.length) return;
+    await pool.query(`
+      ALTER TABLE activities
+        ADD COLUMN IF NOT EXISTS price NUMERIC NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS duration TEXT NOT NULL DEFAULT '',
+        ADD COLUMN IF NOT EXISTS duration_en TEXT NOT NULL DEFAULT '',
+        ADD COLUMN IF NOT EXISTS includes TEXT[] NOT NULL DEFAULT '{}',
+        ADD COLUMN IF NOT EXISTS includes_en TEXT[] NOT NULL DEFAULT '{}'
+    `);
+  })().catch((err) => {
+    // نجرب تاني مع الحفظ الجاي بدل ما نفضل شايلين الفشل
+    detailColumnsReady = null;
+    throw err;
+  });
+  return detailColumnsReady;
+}
+
 export async function createActivity(input: ActivityInput): Promise<Activity> {
+  await ensureDetailColumns();
   const result = await pool.query<ActivityRow>(
     `INSERT INTO activities
       (id, name, name_en, description, description_en, image, price, duration, duration_en, includes, includes_en, sort_order)
@@ -77,6 +108,7 @@ export async function updateActivity(
   id: string,
   input: ActivityUpdateInput
 ): Promise<Activity | null> {
+  await ensureDetailColumns();
   const fieldMap: Record<string, string> = {
     name: "name",
     nameEn: "name_en",

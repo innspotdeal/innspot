@@ -48,7 +48,7 @@ export const aboutContent = {
     stats: {
       heading: "بالأرقام",
       items: [
-        { value: "+20", label: "شركة وثقت فينا" },
+        { value: "+70", label: "شركة وثقت فينا" },
         { value: "+20", label: "رحلة اتنظمت" },
         { value: "+40", label: "فيلا بنقدر نضمن حجزها" },
         { value: "3", label: "سنين شغل" },
@@ -150,7 +150,7 @@ export const aboutContent = {
     stats: {
       heading: "In numbers",
       items: [
-        { value: "+20", label: "companies trusted us" },
+        { value: "+70", label: "companies trusted us" },
         { value: "+20", label: "trips organised" },
         { value: "+40", label: "villas we can guarantee" },
         { value: "3", label: "years of work" },

@@ -36,17 +36,6 @@ export function toItinerary(value: unknown, valueEn: unknown): ItineraryStep[] {
   });
 }
 
-// العكس: من مخطط الرحلة لنص قابل للتعديل في لوحة الأدمن
-export function itineraryToText(steps: ItineraryStep[], lang: "ar" | "en"): string {
-  return steps
-    .map((s) => {
-      const title = lang === "en" ? s.titleEn : s.title;
-      const detail = lang === "en" ? s.detailEn : s.detail;
-      return detail ? `${title} | ${detail}` : title;
-    })
-    .join("\n");
-}
-
 // سعر التذكرة: رقم مش سالب — أي حاجة تانية (فاضي/نص) = صفر، يعني مش برنامج تذاكر
 export function toTicketPrice(value: unknown): number {
   const n = typeof value === "string" ? Number(value.trim()) : Number(value);

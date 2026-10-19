@@ -5,7 +5,7 @@ export type ActivityDetails = Partial<
   Pick<Activity, "price" | "duration" | "durationEn" | "includes" | "includesEn">
 >;
 
-// سعر النشاط ومدته و"يشمل النشاط" — جايين من لوحة الأدمن أو الـ ERP
+// سعر النشاط ومدته و"يشمل النشاط" — جايين من الـ ERP
 // اللي مش مبعوت بيفضل undefined، عشان الـ PATCH الجزئي ما يمسحوش
 // السعر: فاضي = صفر (من غير سعر)، ورقم سالب أو نص = غلط
 export function parseActivityDetails(

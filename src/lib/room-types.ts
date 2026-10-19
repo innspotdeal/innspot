@@ -37,7 +37,7 @@ export function readRoomTypes(value: unknown): RoomType[] {
     .filter((r) => r.name);
 }
 
-// تحقق صارم — للبيانات اللي جاية من لوحة الأدمن أو الـ ERP
+// تحقق صارم — للبيانات اللي جاية من الـ ERP
 export function parseRoomTypes(
   value: unknown
 ): { ok: true; rooms: RoomType[] } | { ok: false; error: string } {

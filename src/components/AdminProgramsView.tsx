@@ -260,7 +260,8 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
       {!hasBuilder && builderSeed && (
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand-orange/30 bg-brand-orange/5 p-4">
           <p className="text-sm font-semibold text-neutral-700">
-            برنامج الكاستم (اللي العميل بيركّب فيه رحلته بنفسه) مش موجود، فكارته مش ظاهر في صفحة رحلات الشركات.
+            برنامج الكاستم (اللي العميل بيركّب فيه رحلته بنفسه) مش متسجل هنا، فالموقع بيعرضه باسمه ووصفه الأصليين.
+            رجّعه عشان تقدر تعدّل اسمه ووصفه وصوره.
           </p>
           <button
             onClick={handleRestoreBuilder}

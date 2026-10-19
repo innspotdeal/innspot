@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ArrowIcon from "@/components/ArrowIcon";
 import ActivityFullCard from "@/components/ActivityFullCard";
 import type { Activity } from "@/data/activities";
 import { translations } from "@/data/translations";
@@ -14,8 +15,9 @@ export default function ActivitiesGridView({ activities }: { activities: Activit
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <Link
         href="/accommodation"
-        className="text-sm font-semibold text-brand-blue hover:text-brand-orange"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-brand-blue hover:text-brand-orange"
       >
+        <ArrowIcon direction="back" />
         {t.accommodationDetail.back}
       </Link>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ArrowIcon from "@/components/ArrowIcon";
 import AccommodationFullCard from "@/components/AccommodationFullCard";
 import type { Accommodation } from "@/data/accommodations";
 import { translations } from "@/data/translations";
@@ -16,8 +17,9 @@ export default function VillasGridView({ villas: villaList }: { villas: Accommod
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
       <Link
         href="/accommodation"
-        className="text-sm font-semibold text-brand-blue hover:text-brand-orange"
+        className="inline-flex items-center gap-2 text-sm font-semibold text-brand-blue hover:text-brand-orange"
       >
+        <ArrowIcon direction="back" />
         {t.accommodationDetail.back}
       </Link>
 

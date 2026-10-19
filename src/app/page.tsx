@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { siteConfig } from "@/data/site";
 import { translations } from "@/data/translations";
@@ -31,8 +32,15 @@ export default function Home() {
 
       <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center gap-8 px-4 py-16 text-center sm:px-6">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-white drop-shadow-lg sm:text-6xl">
-            {name}
+          <h1>
+            <Image
+              src="/brand/wordmark-cream.png"
+              alt={name}
+              width={514}
+              height={226}
+              priority
+              className="mx-auto h-24 w-auto drop-shadow-lg sm:h-36"
+            />
           </h1>
           <p className="mt-4 text-base font-medium text-white/90 drop-shadow sm:text-xl">
             {tagline}

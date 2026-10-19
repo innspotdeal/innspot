@@ -39,4 +39,5 @@ export const navLinks = [
   { href: "/", key: "home" },
   { href: "/accommodation", key: "accommodation" },
   { href: "/corporate-trips", key: "corporateTrips" },
+  { href: "/about", key: "about" },
 ] as const;

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import ArrowIcon from "@/components/ArrowIcon";
 
 export default function ImageGallery({
   images,
@@ -41,22 +42,18 @@ export default function ImageGallery({
             type="button"
             onClick={showPrev}
             aria-label="الصورة السابقة"
-            className="absolute inset-y-0 left-2 my-auto flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white transition hover:bg-black/60"
+            className="absolute inset-y-0 left-2 my-auto flex h-10 w-10 items-center justify-center rounded-full bg-brand-cream/90 shadow-md transition hover:bg-brand-cream"
           >
-            <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current">
-              <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
-            </svg>
+            <ArrowIcon direction="back" followText={false} className="h-4 w-auto" />
           </button>
 
           <button
             type="button"
             onClick={showNext}
             aria-label="الصورة التالية"
-            className="absolute inset-y-0 right-2 my-auto flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white transition hover:bg-black/60"
+            className="absolute inset-y-0 right-2 my-auto flex h-10 w-10 items-center justify-center rounded-full bg-brand-cream/90 shadow-md transition hover:bg-brand-cream"
           >
-            <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current">
-              <path d="M8.59 16.59 10 18l6-6-6-6-1.41 1.41L13.17 12z" />
-            </svg>
+            <ArrowIcon direction="next" followText={false} className="h-4 w-auto" />
           </button>
 
           <div

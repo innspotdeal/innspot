@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import ArrowIcon from "@/components/ArrowIcon";
 
 export default function ScrollRow({
   title,
@@ -17,11 +18,9 @@ export default function ScrollRow({
         <Link
           href={href}
           aria-label={title}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 transition hover:bg-neutral-200"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-sm transition hover:shadow-md"
         >
-          <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current rtl:-scale-x-100">
-            <path d="M8.59 16.59 10 18l6-6-6-6-1.41 1.41L13.17 12z" />
-          </svg>
+          <ArrowIcon direction="next" className="h-4 w-auto" />
         </Link>
       </div>
 

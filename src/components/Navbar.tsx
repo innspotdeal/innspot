@@ -23,7 +23,7 @@ export default function Navbar() {
   return (
     <header
       className={`sticky top-0 z-50 ${
-        onBlue ? "bg-brand-blue" : "border-b border-black/5 bg-white/95 backdrop-blur"
+        onBlue ? "bg-brand-blue" : "border-b border-brand-blue/10 bg-brand-cream/95 backdrop-blur"
       }`}
     >
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
@@ -33,12 +33,12 @@ export default function Navbar() {
           className={`flex items-center ${onBlue ? "rounded-2xl bg-white px-4 py-2" : ""}`}
         >
           <Image
-            src="/images/logo.png"
+            src="/brand/wordmark.png"
             alt="Innspot"
-            width={1649}
-            height={712}
+            width={514}
+            height={226}
             priority
-            className="h-9 w-auto sm:h-10"
+            className="h-11 w-auto sm:h-12"
           />
         </Link>
 
@@ -98,13 +98,13 @@ export default function Navbar() {
               onBlue ? "text-white" : "text-brand-blue"
             }`}
           >
-            <svg viewBox="0 0 24 24" className="h-6 w-6 fill-current">
-              {open ? (
+            {open ? (
+              <svg viewBox="0 0 24 24" className="h-6 w-6 fill-current">
                 <path d="M6.4 19L5 17.6l5.6-5.6L5 6.4 6.4 5l5.6 5.6L17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6z" />
-              ) : (
-                <path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z" />
-              )}
-            </svg>
+              </svg>
+            ) : (
+              <Image src="/brand/icons/menu.png" alt="" width={166} height={124} className="h-6 w-auto" />
+            )}
           </button>
         </div>
       </nav>
@@ -113,7 +113,7 @@ export default function Navbar() {
       {open && (
         <ul
           className={`flex flex-col gap-1 px-4 py-3 md:hidden ${
-            onBlue ? "bg-brand-blue" : "border-t border-black/5 bg-white"
+            onBlue ? "bg-brand-blue" : "border-t border-brand-blue/10 bg-brand-cream"
           }`}
         >
           {navLinks.map((link) => {

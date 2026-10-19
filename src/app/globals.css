@@ -1,27 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #fef2ec;
   --foreground: #1a1a1a;
 }
 
-/* ألوان براند إنسبوت: البرتقالي للأزرار الأساسية، الأزرق للعناوين والعناصر الثانوية */
+/* هوية إنسبوت: E03C00 · FF6B35 · FEF2EC · 004E89 · 1A659E
+   البرتقالي الغامق للأزرار والكلام البرتقالي (الكلام الأبيض بيتقري عليه)،
+   والبرتقالي الفاتح للزينة والخلفيات بس — الكلام الأبيض مش بيتقري عليه.
+   الأزرق الغامق للعناوين والقوايم، والكريمي خلفية الموقع.
+   درجات الـ hover (dark) أغمق شوية من اللون نفسه */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-brand-orange: #f15a25;
-  --color-brand-orange-dark: #d84a1a;
-  --color-brand-blue: #0049af;
-  --color-brand-blue-dark: #003a8c;
+  --color-brand-orange: #e03c00;
+  --color-brand-orange-dark: #b83100;
+  --color-brand-orange-light: #ff6b35;
+  --color-brand-blue: #004e89;
+  --color-brand-blue-dark: #003a66;
+  --color-brand-blue-light: #1a659e;
+  --color-brand-cream: #fef2ec;
   --font-sans: var(--font-cairo);
-
-  /* ألوان خاصة بقسم "رحلات شركات" (هوية بصرية أكثر جرأة: كحلي وأصفر) */
-  --color-trip-navy: #183fad;
-  --color-trip-royal: #3d53c6;
-  --color-trip-navy-light: #4565bc;
-  --color-trip-navy-lighter: #abb9de;
-  --color-trip-yellow: #f1bf0a;
-  --color-trip-card: #e9ecf6;
 }
 
 body {

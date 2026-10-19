@@ -66,7 +66,7 @@ export default function RootLayout({
           href="https://cdn-uicons.flaticon.com/2.6.0/uicons-brands/css/uicons-brands.css"
         />
       </head>
-      <body className="flex min-h-full flex-col bg-white text-neutral-900">
+      <body className="flex min-h-full flex-col bg-background text-neutral-900">
         <script dangerouslySetInnerHTML={{ __html: NO_FLASH_SCRIPT }} />
         <LanguageProvider>
           <Navbar />

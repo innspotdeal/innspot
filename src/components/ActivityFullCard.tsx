@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import ArrowIcon from "@/components/ArrowIcon";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
@@ -45,8 +46,9 @@ export default function ActivityFullCard({ item }: { item: Activity }) {
           )}
           <p className="text-sm leading-relaxed text-neutral-600">{description}</p>
 
-          <span className="mt-auto pt-2 text-sm font-bold text-brand-orange">
+          <span className="mt-auto inline-flex items-center gap-2 pt-2 text-sm font-bold text-brand-orange">
             {t.accommodationCard.fullDetails}
+            <ArrowIcon direction="next" />
           </span>
         </div>
       </Link>

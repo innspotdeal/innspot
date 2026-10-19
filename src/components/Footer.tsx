@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { siteConfig, navLinks } from "@/data/site";
 import { translations } from "@/data/translations";
@@ -12,12 +13,50 @@ export default function Footer() {
   const name = lang === "en" ? siteConfig.nameEn : siteConfig.name;
   const tagline = lang === "en" ? siteConfig.taglineEn : siteConfig.tagline;
 
+  // إنستجرام وفيسبوك من أيقونات الهوية، والباقي مالوش أيقونة فيها فبيتلوّن بالأزرق
+  const socials = [
+    {
+      href: buildWhatsAppLink(t.inquiry(name)),
+      label: t.footer.whatsapp,
+      icon: <i className="fi fi-brands-whatsapp leading-none" aria-hidden="true" />,
+    },
+    {
+      href: siteConfig.social.facebook,
+      label: t.footer.facebook,
+      icon: <Image src="/brand/icons/facebook.png" alt="" width={185} height={164} className="h-7 w-auto" />,
+    },
+    {
+      href: siteConfig.social.instagram,
+      label: t.footer.instagram,
+      icon: <Image src="/brand/icons/instagram.png" alt="" width={184} height={172} className="h-7 w-auto" />,
+    },
+    {
+      href: siteConfig.social.linkedin,
+      label: t.footer.linkedin,
+      icon: <i className="fi fi-brands-linkedin leading-none" aria-hidden="true" />,
+    },
+    {
+      href: siteConfig.social.tiktok,
+      label: t.footer.tiktok,
+      icon: <i className="fi fi-brands-tik-tok leading-none" aria-hidden="true" />,
+    },
+  ];
+
   return (
     <footer className="mt-auto bg-brand-blue text-white">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3">
         <div>
-          <h3 className="text-lg font-extrabold">{name}</h3>
-          <p className="mt-2 text-sm leading-relaxed text-white/80">{tagline}</p>
+          <div className="flex items-center gap-4">
+            <Image
+              src="/brand/footer-badge.png"
+              alt=""
+              width={320}
+              height={320}
+              className="size-20 shrink-0 rounded-full ring-4 ring-brand-orange-light"
+            />
+            <Image src="/brand/wordmark-cream.png" alt={name} width={514} height={226} className="h-12 w-auto" />
+          </div>
+          <p className="mt-4 text-sm leading-relaxed text-white/80">{tagline}</p>
         </div>
 
         <div>
@@ -36,56 +75,25 @@ export default function Footer() {
         <div>
           <h4 className="text-sm font-bold text-white/90">{t.footer.contactUs}</h4>
           <ul className="mt-3 flex flex-col gap-2 text-sm text-white/80">
-            <li>{siteConfig.contact.phone}</li>
+            <li>
+              <span dir="ltr">{siteConfig.contact.phone}</span>
+            </li>
             <li>{siteConfig.contact.email}</li>
             <li>{siteConfig.contact.address}</li>
           </ul>
           <div className="mt-4 flex flex-wrap gap-3">
-            <a
-              href={buildWhatsAppLink(t.inquiry(name))}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={t.footer.whatsapp}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-lg text-white/80 transition hover:bg-white/20 hover:text-white"
-            >
-              <i className="fi fi-brands-whatsapp" aria-hidden="true" />
-            </a>
-            <a
-              href={siteConfig.social.facebook}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={t.footer.facebook}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-lg text-white/80 transition hover:bg-white/20 hover:text-white"
-            >
-              <i className="fi fi-brands-facebook" aria-hidden="true" />
-            </a>
-            <a
-              href={siteConfig.social.instagram}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={t.footer.instagram}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-lg text-white/80 transition hover:bg-white/20 hover:text-white"
-            >
-              <i className="fi fi-brands-instagram" aria-hidden="true" />
-            </a>
-            <a
-              href={siteConfig.social.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={t.footer.linkedin}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-lg text-white/80 transition hover:bg-white/20 hover:text-white"
-            >
-              <i className="fi fi-brands-linkedin" aria-hidden="true" />
-            </a>
-            <a
-              href={siteConfig.social.tiktok}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={t.footer.tiktok}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-lg text-white/80 transition hover:bg-white/20 hover:text-white"
-            >
-              <i className="fi fi-brands-tik-tok" aria-hidden="true" />
-            </a>
+            {socials.map((social) => (
+              <a
+                key={social.label}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={social.label}
+                className="flex size-11 items-center justify-center rounded-xl bg-brand-cream text-xl text-brand-blue transition hover:-translate-y-0.5"
+              >
+                {social.icon}
+              </a>
+            ))}
           </div>
         </div>
       </div>

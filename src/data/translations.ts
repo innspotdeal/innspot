@@ -10,6 +10,7 @@ export const translations = {
       home: "الرئيسية",
       accommodation: "أفراد وإقامة",
       corporateTrips: "رحلات شركات",
+      about: "عن إنسبوت",
     },
     languageToggle: "English",
     home: {
@@ -29,7 +30,7 @@ export const translations = {
       capacity: (n: number) => `يتسع لـ ${n} فرد`,
       pool: "مسبح خاص",
       garden: "حديقة خاصة",
-      fullDetails: "التفاصيل الكاملة ←",
+      fullDetails: "التفاصيل الكاملة",
       weekdayPrice: "سعر أيام الأسبوع",
       weekendPrice: "سعر نهاية الأسبوع",
       currency: (v: number) => `${v.toLocaleString("ar-EG")} جنيه`,
@@ -37,7 +38,7 @@ export const translations = {
       perPerson: "/ للفرد",
     },
     accommodationDetail: {
-      back: "→ العودة إلى أفراد وإقامة",
+      back: "العودة إلى أفراد وإقامة",
       amenitiesHeading: "المرافق المتاحة",
       roomTypesHeading: "أنواع الغرف المتاحة",
       villaBadge: "فيلا",
@@ -55,11 +56,10 @@ export const translations = {
       title: "رحلات شركات",
       subtitle: "برامج رحلات جماعية متكاملة، مصممة لتناسب فرق العمل والفعاليات الجماعية",
       exploreCta: "استكشف البرامج",
-      programsHeading: "برامجنا",
       trustedByHeading: "شركات وثقت بينا",
     },
     programCard: {
-      fullDetails: "البرنامج كامل والتفاصيل ←",
+      fullDetails: "البرنامج كامل والتفاصيل",
       statStops: "محطات",
       statMinPeople: "أقل عدد",
       statFrom: "يبدأ من للفرد",
@@ -75,7 +75,7 @@ export const translations = {
       endTimeLabel: "العودة:",
     },
     programDetail: {
-      back: "→ العودة إلى رحلات شركات",
+      back: "العودة إلى رحلات شركات",
       inquiryLabel: "استفسر عن هذا البرنامج",
     },
     ticketBooking: {
@@ -156,6 +156,7 @@ export const translations = {
       home: "Home",
       accommodation: "Accommodation",
       corporateTrips: "Corporate Trips",
+      about: "About",
     },
     languageToggle: "العربية",
     home: {
@@ -175,7 +176,7 @@ export const translations = {
       capacity: (n: number) => `Fits up to ${n} guests`,
       pool: "Private pool",
       garden: "Private garden",
-      fullDetails: "Full details →",
+      fullDetails: "Full details",
       weekdayPrice: "Weekday Price",
       weekendPrice: "Weekend Price",
       currency: (v: number) => `EGP ${v.toLocaleString("en-US")}`,
@@ -183,7 +184,7 @@ export const translations = {
       perPerson: "/ person",
     },
     accommodationDetail: {
-      back: "← Back to Accommodation",
+      back: "Back to Accommodation",
       amenitiesHeading: "Available Amenities",
       roomTypesHeading: "Available Room Types",
       villaBadge: "Villa",
@@ -201,11 +202,10 @@ export const translations = {
       title: "Corporate Trips",
       subtitle: "Complete group trip programs, designed to fit teams and group events",
       exploreCta: "Explore Programs",
-      programsHeading: "Our Programs",
       trustedByHeading: "Trusted by teams from",
     },
     programCard: {
-      fullDetails: "Full program & details →",
+      fullDetails: "Full program & details",
       statStops: "Stops",
       statMinPeople: "Min people",
       statFrom: "From, per person",
@@ -221,7 +221,7 @@ export const translations = {
       endTimeLabel: "Return:",
     },
     programDetail: {
-      back: "← Back to Corporate Trips",
+      back: "Back to Corporate Trips",
       inquiryLabel: "Ask about this program",
     },
     ticketBooking: {

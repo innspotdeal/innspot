@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import ImageGallery from "@/components/ImageGallery";
+import ArrowIcon from "@/components/ArrowIcon";
 import RoomDialog from "@/components/RoomDialog";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import AmenityIcon from "@/components/AmenityIcon";
@@ -35,11 +36,9 @@ export default function HotelDetailView({ item }: { item: Hotel }) {
           type="button"
           onClick={() => router.back()}
           aria-label={t.accommodationDetail.back}
-          className="absolute start-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-neutral-800 shadow-md transition hover:bg-white"
+          className="absolute start-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-brand-cream/95 shadow-md transition hover:bg-brand-cream"
         >
-          <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current rtl:-scale-x-100">
-            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" />
-          </svg>
+          <ArrowIcon direction="back" className="h-4 w-auto" />
         </button>
       </div>
 
@@ -106,8 +105,9 @@ export default function HotelDetailView({ item }: { item: Hotel }) {
                       {roomDescription && (
                         <p className="line-clamp-2 text-sm leading-relaxed text-neutral-600">{roomDescription}</p>
                       )}
-                      <span className="mt-auto pt-1 text-sm font-bold text-brand-orange">
-                        {t.accommodationDetail.roomDetails} <span className="inline-block rtl:-scale-x-100">→</span>
+                      <span className="mt-auto inline-flex items-center gap-2 pt-1 text-sm font-bold text-brand-orange">
+                        {t.accommodationDetail.roomDetails}
+                        <ArrowIcon direction="next" />
                       </span>
                     </div>
                   </button>

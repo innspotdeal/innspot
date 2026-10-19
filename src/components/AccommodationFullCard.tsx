@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import ArrowIcon from "@/components/ArrowIcon";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { getAmenityIconClass } from "@/lib/amenityIcon";
 import { translations } from "@/data/translations";
@@ -87,8 +88,9 @@ export default function AccommodationFullCard({ item }: { item: Accommodation })
             })}
           </ul>
 
-          <span className="mt-auto pt-2 text-sm font-bold text-brand-orange">
+          <span className="mt-auto inline-flex items-center gap-2 pt-2 text-sm font-bold text-brand-orange">
             {t.accommodationCard.fullDetails}
+            <ArrowIcon direction="next" />
           </span>
         </div>
       </Link>

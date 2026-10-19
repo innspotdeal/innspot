@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import CorporateProgramDetailView from "@/components/CorporateProgramDetailView";
 import CustomTripBuilder from "@/components/CustomTripBuilder";
-import { getPublicProgram, listPrograms } from "@/lib/programs-repo";
+import { getProgramById, listPrograms } from "@/lib/programs-repo";
 import { listActiveOptions } from "@/lib/custom-trip-repo";
 import { listHotels } from "@/lib/hotels-repo";
 import { listProgramAddonModes, listPublicProgramAddons } from "@/lib/program-addons";
@@ -15,7 +15,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const program = await getPublicProgram(id);
+  const program = await getProgramById(id);
 
   if (!program) {
     return { title: "غير موجود | إنسبوت" };
@@ -33,7 +33,7 @@ export default async function CorporateProgramDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [program, programs] = await Promise.all([getPublicProgram(id), listPrograms()]);
+  const [program, programs] = await Promise.all([getProgramById(id), listPrograms()]);
 
   if (!program) {
     notFound();

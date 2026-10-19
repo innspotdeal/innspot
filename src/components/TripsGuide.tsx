@@ -70,9 +70,12 @@ export default function TripsGuide({
   const { lang } = useLanguage();
   const g = tripsGuide[lang];
 
+  // البرنامج الكاستم بيظهر بس لو موجود — لو اتمسح (أو اتوقف) جزءه كله بيختفي
   const choices = [
     { choice: g.choose.fixed, program: fixedProgram, startingPrice: fixedStartingPrice, accent: "var(--color-brand-orange)" },
-    { choice: g.choose.custom, program: customProgram, startingPrice: undefined, accent: "var(--color-brand-blue)" },
+    ...(customProgram
+      ? [{ choice: g.choose.custom, program: customProgram, startingPrice: undefined, accent: "var(--color-brand-blue)" }]
+      : []),
   ];
 
   return (
@@ -131,7 +134,7 @@ export default function TripsGuide({
       {/* اختار الطريقة: البرنامج الثابت والكاستم، وتحت كل واحد الكارت بتاعه */}
       <section id="programs" className="mt-20 scroll-mt-8">
         <h2 className="text-4xl font-extrabold text-brand-blue sm:text-5xl">{g.choose.heading}</h2>
-        <div className="mt-8 grid gap-12 md:grid-cols-2 md:gap-8">
+        <div className={`mt-8 grid gap-12 md:gap-8 ${choices.length > 1 ? "md:grid-cols-2" : "max-w-xl"}`}>
           {choices.map(({ choice, program, startingPrice, accent }) => (
             <div key={choice.title} className="flex flex-col">
               <p className="text-sm font-extrabold text-brand-orange">{choice.tag}</p>

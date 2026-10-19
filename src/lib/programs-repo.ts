@@ -1,11 +1,7 @@
 import "server-only";
 import { pool } from "@/lib/db";
 import { MIN_PEOPLE } from "@/data/booking";
-import { corporatePrograms, type CorporateProgram, type ItineraryStep } from "@/data/programs";
-
-// برنامج الكاستم الأصلي (data/programs.ts): لو اتمسح من قاعدة البيانات، صفحة رحلات الشركات
-// وصفحته بيعرضوه بالكلام ده لحد ما يترجّع من الأدمن ويبقى ليه نسخة تتعدّل
-export const FALLBACK_BUILDER: CorporateProgram | null = corporatePrograms.find((p) => p.isBuilder) ?? null;
+import type { CorporateProgram, ItineraryStep } from "@/data/programs";
 
 type ProgramRow = {
   id: string;
@@ -82,11 +78,6 @@ export async function listPrograms(): Promise<CorporateProgram[]> {
     "SELECT * FROM corporate_programs ORDER BY is_builder ASC, sort_order ASC, name ASC"
   );
   return result.rows.map(rowToProgram);
-}
-
-// البرنامج زي ما الزائر بيشوفه: من قاعدة البيانات، أو برنامج الكاستم الأصلي لو اتمسح
-export async function getPublicProgram(id: string): Promise<CorporateProgram | null> {
-  return (await getProgramById(id)) ?? (FALLBACK_BUILDER?.id === id ? FALLBACK_BUILDER : null);
 }
 
 export async function getProgramById(id: string): Promise<CorporateProgram | null> {

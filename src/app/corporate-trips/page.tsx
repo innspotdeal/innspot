@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import CorporateTripsListView from "@/components/CorporateTripsListView";
-import { FALLBACK_BUILDER, listPrograms } from "@/lib/programs-repo";
+import { listPrograms } from "@/lib/programs-repo";
 import { getStartingPrices } from "@/lib/pricing";
 
 export const metadata: Metadata = {
@@ -15,7 +15,7 @@ export default async function CorporateTripsPage() {
   // الصفحة بتعرض طريقتين بس: البرنامج الثابت (أول برنامج عادي بحاسبة سعر في الترتيب — برنامج الباص)
   // والبرنامج الكاستم (اللي بيفتح صفحة تصميم الرحلة). باقي البرامج صفحاتها شغالة بس مش ظاهرة هنا
   const fixedProgram = programs.find((p) => !p.isCustom && !p.isBuilder && !p.isTicket) ?? null;
-  const customProgram = programs.find((p) => p.isBuilder) ?? FALLBACK_BUILDER;
+  const customProgram = programs.find((p) => p.isBuilder) ?? null;
   const startingPrices = fixedProgram ? await getStartingPrices([fixedProgram.id]) : {};
 
   return (

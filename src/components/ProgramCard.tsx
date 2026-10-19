@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import ArrowIcon from "@/components/ArrowIcon";
-import { MIN_PEOPLE } from "@/data/booking";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
 import type { CorporateProgram } from "@/data/programs";
@@ -33,7 +32,7 @@ export default function ProgramCard({
 
   const stats = [
     { value: program.itinerary.length || t.statCustom, label: t.statStops },
-    { value: program.isTicket || program.isBuilder ? 1 : MIN_PEOPLE, label: t.statMinPeople },
+    { value: program.isTicket || program.isBuilder ? 1 : program.minPeople, label: t.statMinPeople },
     price,
   ];
 

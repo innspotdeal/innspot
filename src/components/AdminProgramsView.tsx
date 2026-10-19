@@ -4,6 +4,7 @@ import { Fragment, useState } from "react";
 import Link from "next/link";
 import { corporatePrograms as seedPrograms, type CorporateProgram } from "@/data/programs";
 import ImageUploader from "@/components/ImageUploader";
+import { MIN_PEOPLE } from "@/data/booking";
 import { itineraryToText } from "@/lib/program-input";
 
 type NewProgramForm = {
@@ -22,6 +23,7 @@ type NewProgramForm = {
   isCustom: boolean;
   isTicket: boolean;
   isBuilder: boolean;
+  minPeople: string;
 };
 
 const emptyForm: NewProgramForm = {
@@ -40,6 +42,7 @@ const emptyForm: NewProgramForm = {
   isCustom: false,
   isTicket: false,
   isBuilder: false,
+  minPeople: String(MIN_PEOPLE),
 };
 
 type EditProgramForm = {
@@ -58,6 +61,7 @@ type EditProgramForm = {
   isCustom: boolean;
   isTicket: boolean;
   isBuilder: boolean;
+  minPeople: string;
 };
 
 function programToEditForm(p: CorporateProgram): EditProgramForm {
@@ -77,6 +81,7 @@ function programToEditForm(p: CorporateProgram): EditProgramForm {
     isCustom: p.isCustom,
     isTicket: p.isTicket,
     isBuilder: p.isBuilder,
+    minPeople: String(p.minPeople),
   };
 }
 
@@ -279,6 +284,12 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
           <Field label="مدة البرنامج (عربي)" value={form.duration} onChange={(v) => setForm({ ...form, duration: v })} />
           <Field label="Duration (English)" value={form.durationEn} onChange={(v) => setForm({ ...form, durationEn: v })} />
           <Field
+            label="أقل عدد أفراد للحجز (بيظهر في الكارت والحاسبة بترفض أقل منه)"
+            value={form.minPeople}
+            onChange={(v) => setForm({ ...form, minPeople: v })}
+          />
+          <div className="hidden sm:block" />
+          <Field
             label="وقت التحرك (24 ساعة، مثال 07:00)"
             value={form.startTime}
             onChange={(v) => setForm({ ...form, startTime: v })}
@@ -359,6 +370,7 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
             <tr>
               <th className="px-4 py-3 font-bold">البرنامج</th>
               <th className="px-4 py-3 font-bold">المدة</th>
+              <th className="px-4 py-3 font-bold">أقل عدد</th>
               <th className="px-4 py-3 font-bold">النوع</th>
               <th className="px-4 py-3 font-bold"></th>
             </tr>
@@ -369,6 +381,9 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
               <tr className="border-t border-black/5">
                 <td className="px-4 py-3 font-semibold text-brand-blue">{program.name}</td>
                 <td className="px-4 py-3 text-neutral-600">{program.duration || "—"}</td>
+                <td className="px-4 py-3 text-neutral-600">
+                  {program.isBuilder || program.isTicket ? "—" : program.minPeople}
+                </td>
                 <td className="px-4 py-3 text-neutral-600">
                   {program.isBuilder
                     ? "الكاستم (تصميم الرحلة)"
@@ -398,7 +413,7 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
               </tr>
               {expandedId === program.id && (
                 <tr className="border-t border-black/5 bg-neutral-50">
-                  <td colSpan={4} className="px-4 py-5">
+                  <td colSpan={5} className="px-4 py-5">
                     <p className="mb-3 text-sm font-bold text-neutral-800">تعديل {program.name}</p>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <EditField
@@ -433,6 +448,12 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
                         value={editForms[program.id]?.durationEn ?? ""}
                         onChange={(v) => updateEdit(program.id, "durationEn", v)}
                       />
+                      <EditField
+                        label="أقل عدد أفراد للحجز (بيظهر في الكارت والحاسبة بترفض أقل منه)"
+                        value={editForms[program.id]?.minPeople ?? ""}
+                        onChange={(v) => updateEdit(program.id, "minPeople", v)}
+                      />
+                      <div className="hidden sm:block" />
                       <EditField
                         label="وقت التحرك (24 ساعة، مثال 07:00)"
                         value={editForms[program.id]?.startTime ?? ""}
@@ -530,7 +551,7 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
             ))}
             {programs.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-neutral-500">
+                <td colSpan={5} className="px-4 py-8 text-center text-neutral-500">
                   لا توجد برامج حاليًا
                 </td>
               </tr>

@@ -1,17 +1,27 @@
 import { NextResponse } from "next/server";
-import { calculatePrice, MIN_PEOPLE } from "@/lib/pricing";
+import { calculatePrice } from "@/lib/pricing";
 import { getProgramById } from "@/lib/programs-repo";
 
 type Lang = "ar" | "en";
 
-const MESSAGES: Record<Lang, Record<string, string>> = {
+type Messages = {
+  invalidRequest: string;
+  selectProgram: string;
+  programNotFound: string;
+  ticketProgram: string;
+  peopleInvalid: string;
+  // أقل عدد بيختلف من برنامج للتاني
+  minPeople: (n: number) => string;
+};
+
+const MESSAGES: Record<Lang, Messages> = {
   ar: {
     invalidRequest: "بيانات الطلب غير صالحة",
     selectProgram: "يرجى اختيار برنامج الرحلة",
     programNotFound: "برنامج الرحلة غير موجود",
     ticketProgram: "البرنامج ده بتذاكر بسعر ثابت للفرد — مش محتاج حاسبة",
     peopleInvalid: "عدد الأفراد يجب أن يكون رقمًا صحيحًا موجبًا",
-    minPeople: `الحد الأدنى للحجز ${MIN_PEOPLE} فرد`,
+    minPeople: (n: number) => `الحد الأدنى للحجز ${n} فرد`,
   },
   en: {
     invalidRequest: "Invalid request data",
@@ -19,7 +29,7 @@ const MESSAGES: Record<Lang, Record<string, string>> = {
     programNotFound: "Trip program not found",
     ticketProgram: "This program is sold as tickets at a fixed price per person",
     peopleInvalid: "Number of people must be a positive whole number",
-    minPeople: `Minimum booking is ${MIN_PEOPLE} people`,
+    minPeople: (n: number) => `Minimum booking is ${n} people`,
   },
 };
 
@@ -66,8 +76,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: t.peopleInvalid }, { status: 400 });
   }
 
-  if (peopleNumber < MIN_PEOPLE) {
-    return NextResponse.json({ ok: false, error: t.minPeople }, { status: 400 });
+  if (peopleNumber < program.minPeople) {
+    return NextResponse.json({ ok: false, error: t.minPeople(program.minPeople) }, { status: 400 });
   }
 
   // الإضافات اللي مش متاحة للبرنامج ده بيتجاهلها محرك التسعير نفسه
@@ -80,6 +90,7 @@ export async function POST(request: Request) {
     people: peopleNumber,
     addons: addonIds,
     includeTransport: includeTransport === undefined ? true : Boolean(includeTransport),
+    minPeople: program.minPeople,
   });
 
   if (!result.ok) {

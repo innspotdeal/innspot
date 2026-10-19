@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createProgram, listPrograms, type ProgramInput } from "@/lib/programs-repo";
-import { toImageList, toItinerary, toList } from "@/lib/program-input";
+import { MIN_PEOPLE } from "@/data/booking";
+import { toImageList, toItinerary, toList, toMinPeople } from "@/lib/program-input";
 
 function slugify(text: string): string {
   return text
@@ -25,6 +26,11 @@ function parseProgramInput(
   // برنامج الكاستم (مكوّن الرحلة) سعره بالطلب دايمًا، ومش برنامج تذاكر
   const isBuilder = Boolean(b.isBuilder);
 
+  const minPeople = b.minPeople === undefined || b.minPeople === "" ? MIN_PEOPLE : toMinPeople(b.minPeople);
+  if (minPeople === null) {
+    return { ok: false, error: "أقل عدد أفراد لازم يكون رقم صحيح من 1 لـ 1000" };
+  }
+
   const rawId = typeof b.id === "string" && b.id.trim() ? b.id.trim() : slugify(nameEn || name);
   const id = slugify(rawId);
   if (!id) return { ok: false, error: "تعذر تكوين معرّف صالح للبرنامج" };
@@ -48,6 +54,7 @@ function parseProgramInput(
       isCustom: isBuilder || Boolean(b.isCustom),
       isTicket: !isBuilder && Boolean(b.isTicket),
       isBuilder,
+      minPeople,
     },
   };
 }

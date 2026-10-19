@@ -3,6 +3,7 @@ import { pool } from "@/lib/db";
 import { MIN_PEOPLE } from "@/data/booking";
 import { allocateFleet, type Vehicle } from "@/lib/transport";
 import { addonTotal, getProgramAddons } from "@/lib/program-addons";
+import { getProgramById } from "@/lib/programs-repo";
 
 // ============================================================
 // ملف التسعير — سيرفر فقط (Server Only)
@@ -230,6 +231,8 @@ export type CalculatePriceInput = {
   addons: string[];
   // الانتقالات اختيارية — العميل ممكن ييجي بمواصلاته
   includeTransport?: boolean;
+  // أقل عدد أفراد للبرنامج لو معروف — لو مش مبعوت بيتجاب من البرنامج نفسه
+  minPeople?: number;
 };
 
 export type CalculatePriceResult =
@@ -246,11 +249,17 @@ export type CalculatePriceResult =
       error: string;
     };
 
+// أقل عدد أفراد للبرنامج — من البرنامج نفسه، والافتراضي لو مش موجود
+async function programMinPeople(programId: string): Promise<number> {
+  return (await getProgramById(programId))?.minPeople ?? MIN_PEOPLE;
+}
+
 export async function calculatePrice({
   programId,
   people,
   addons,
   includeTransport = true,
+  minPeople,
 }: CalculatePriceInput): Promise<CalculatePriceResult> {
   const pricing = await getProgramPricing(programId);
   if (!pricing) {
@@ -261,8 +270,9 @@ export async function calculatePrice({
     return { ok: false, error: "عدد الأفراد يجب أن يكون رقمًا صحيحًا موجبًا" };
   }
 
-  if (people < MIN_PEOPLE) {
-    return { ok: false, error: `الحد الأدنى للحجز ${MIN_PEOPLE} فرد` };
+  const min = minPeople ?? (await programMinPeople(programId));
+  if (people < min) {
+    return { ok: false, error: `الحد الأدنى للحجز ${min} فرد` };
   }
 
   const [settings, programAddons] = await Promise.all([
@@ -329,9 +339,10 @@ const STARTING_PRICE_MAX_PEOPLE = 50;
 
 export async function getStartingPricePerPerson(programId: string): Promise<number | null> {
   let cheapest: number | null = null;
+  const minPeople = await programMinPeople(programId);
 
-  for (let people = MIN_PEOPLE; people <= STARTING_PRICE_MAX_PEOPLE; people++) {
-    const result = await calculatePrice({ programId, people, addons: [] });
+  for (let people = minPeople; people <= Math.max(minPeople, STARTING_PRICE_MAX_PEOPLE); people++) {
+    const result = await calculatePrice({ programId, people, addons: [], minPeople });
     if (!result.ok) continue;
     if (cheapest === null || result.pricePerPerson < cheapest) cheapest = result.pricePerPerson;
   }

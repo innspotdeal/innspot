@@ -44,6 +44,8 @@ export type CorporateProgram = {
   // بدل حاسبة السعر. السعر نفسه (ticketPrice) بيتحدد من صفحة التسعير
   isTicket: boolean;
   ticketPrice: number;
+  // أقل عدد أفراد للحجز — الكارت والحاسبة وسعر "يبدأ من" بيمشوا عليه
+  minPeople: number;
 };
 
 const step = (title: string, titleEn: string, detail = "", detailEn = ""): ItineraryStep => ({
@@ -112,6 +114,7 @@ export const corporatePrograms: CorporateProgram[] = [
     isCustom: false,
     isTicket: false,
     ticketPrice: 0,
+    minPeople: 20,
     isBuilder: false,
   },
   {
@@ -162,6 +165,7 @@ export const corporatePrograms: CorporateProgram[] = [
     isCustom: false,
     isTicket: false,
     ticketPrice: 0,
+    minPeople: 10,
     isBuilder: false,
   },
   {
@@ -183,6 +187,7 @@ export const corporatePrograms: CorporateProgram[] = [
     isCustom: true,
     isTicket: false,
     ticketPrice: 0,
+    minPeople: 1,
     // صفحته مكوّن رحلة تفاعلي مش مخطط عادي
     isBuilder: true,
   },

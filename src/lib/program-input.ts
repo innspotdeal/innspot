@@ -52,3 +52,9 @@ export function toTicketPrice(value: unknown): number {
   const n = typeof value === "string" ? Number(value.trim()) : Number(value);
   return Number.isFinite(n) && n > 0 ? n : 0;
 }
+
+// أقل عدد أفراد للحجز: رقم صحيح من 1 لـ 1000 — أي حاجة تانية = null (غلط)
+export function toMinPeople(value: unknown): number | null {
+  const n = typeof value === "string" ? Number(value.trim()) : Number(value);
+  return Number.isInteger(n) && n >= 1 && n <= 1000 ? n : null;
+}

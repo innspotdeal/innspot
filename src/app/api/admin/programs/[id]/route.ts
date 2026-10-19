@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { deleteProgram, updateProgram, type ProgramUpdateInput } from "@/lib/programs-repo";
-import { toImageList, toItinerary, toList } from "@/lib/program-input";
+import { toImageList, toItinerary, toList, toMinPeople } from "@/lib/program-input";
 
-function parseUpdateInput(body: unknown): ProgramUpdateInput {
+function parseUpdateInput(
+  body: unknown
+): { ok: true; data: ProgramUpdateInput } | { ok: false; error: string } {
   const b = (body ?? {}) as Record<string, unknown>;
   const update: ProgramUpdateInput = {};
 
@@ -26,8 +28,13 @@ function parseUpdateInput(body: unknown): ProgramUpdateInput {
     update.isCustom = true;
     update.isTicket = false;
   }
+  if (b.minPeople !== undefined) {
+    const minPeople = toMinPeople(b.minPeople);
+    if (minPeople === null) return { ok: false, error: "أقل عدد أفراد لازم يكون رقم صحيح من 1 لـ 1000" };
+    update.minPeople = minPeople;
+  }
 
-  return update;
+  return { ok: true, data: update };
 }
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -40,7 +47,12 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     return NextResponse.json({ ok: false, error: "بيانات غير صالحة" }, { status: 400 });
   }
 
-  const program = await updateProgram(id, parseUpdateInput(body));
+  const parsed = parseUpdateInput(body);
+  if (!parsed.ok) {
+    return NextResponse.json({ ok: false, error: parsed.error }, { status: 400 });
+  }
+
+  const program = await updateProgram(id, parsed.data);
   if (!program) {
     return NextResponse.json({ ok: false, error: "البرنامج غير موجود" }, { status: 404 });
   }

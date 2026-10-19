@@ -100,6 +100,8 @@ export type Program = {
   ticketPrice: number;
   // برنامج الكاستم: صفحته مكوّن رحلة يركّبها العميل بنفسه (بيتعمل isCustom تلقائي)
   isBuilder?: boolean;
+  // أقل عدد أفراد للحجز (الافتراضي 10) — الحاسبة بترفض أقل منه
+  minPeople?: number;
 };
 
 export type TransportVehicle = {

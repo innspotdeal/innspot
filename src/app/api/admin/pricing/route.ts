@@ -48,18 +48,28 @@ export async function GET() {
   });
 }
 
-function parseMarginTiers(value: unknown): MarginTier[] | null {
-  if (!Array.isArray(value)) return null;
+// كل شريحة: { fromPeople, toPeople, marginPerPerson } — المكسب على كل فرد.
+// margin القديم (مبلغ على الرحلة كلها) مرفوض: لو اتقبل كأنه للفرد هيبوّظ الأسعار
+function parseMarginTiers(value: unknown): { ok: true; tiers: MarginTier[] } | { ok: false; error: string } {
+  if (!Array.isArray(value)) return { ok: false, error: "شرائح المكسب غير صالحة" };
   const tiers: MarginTier[] = [];
   for (const item of value) {
     const t = item as Record<string, unknown>;
+    if (t.marginPerPerson === undefined && t.margin !== undefined) {
+      return {
+        ok: false,
+        error: "شرائح المكسب بقت بالفرد: ابعت marginPerPerson (المكسب على كل فرد) بدل margin",
+      };
+    }
     const fromPeople = Number(t.fromPeople);
     const toPeople = Number(t.toPeople) || 0;
-    const margin = Number(t.margin);
-    if (!Number.isFinite(fromPeople) || !Number.isFinite(margin)) return null;
-    tiers.push({ fromPeople, toPeople, margin });
+    const marginPerPerson = Number(t.marginPerPerson);
+    if (!Number.isFinite(fromPeople) || !Number.isFinite(marginPerPerson) || marginPerPerson < 0) {
+      return { ok: false, error: "شرائح المكسب غير صالحة" };
+    }
+    tiers.push({ fromPeople, toPeople, marginPerPerson });
   }
-  return tiers;
+  return { ok: true, tiers };
 }
 
 export async function PATCH(request: Request) {
@@ -141,13 +151,13 @@ export async function PATCH(request: Request) {
 
   if (b.settings !== undefined) {
     const s = b.settings as Record<string, unknown>;
-    const marginTiers = parseMarginTiers(s.marginTiers);
-    if (marginTiers === null) {
-      return NextResponse.json({ ok: false, error: "شرائح هامش الربح غير صالحة" }, { status: 400 });
+    const parsed = parseMarginTiers(s.marginTiers);
+    if (!parsed.ok) {
+      return NextResponse.json({ ok: false, error: parsed.error }, { status: 400 });
     }
     await setPricingSettings({
       peoplePerCar: Number(s.peoplePerCar) || 1,
-      marginTiers,
+      marginTiers: parsed.tiers,
     });
   }
 

@@ -165,7 +165,9 @@ export type AddonSummary = {
 };
 
 // شريحة هامش ربح — toPeople = 0 معناها "وما فوق"
-export type MarginTier = { fromPeople: number; toPeople: number; margin: number };
+// شريحة المكسب: المكسب على كل فرد في المدى ده — إجمالي المكسب = marginPerPerson × العدد
+// (margin القديم — مبلغ على الرحلة كلها — اتلغى، والـ PATCH بيرفضه)
+export type MarginTier = { fromPeople: number; toPeople: number; marginPerPerson: number };
 
 export type ProgramPricing = {
   breakfastPerPerson: number;

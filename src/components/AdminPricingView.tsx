@@ -66,7 +66,7 @@ export default function AdminPricingView({
   const [marginTiers, setMarginTiers] = useState<MarginTier[]>(
     initialSettings.marginTiers.length
       ? initialSettings.marginTiers
-      : [{ fromPeople: 0, toPeople: 0, margin: 0 }]
+      : [{ fromPeople: 0, toPeople: 0, marginPerPerson: 0 }]
   );
 
   const [savingProgram, setSavingProgram] = useState<string | null>(null);
@@ -166,7 +166,7 @@ export default function AdminPricingView({
   }
 
   function addTier() {
-    setMarginTiers((prev) => [...prev, { fromPeople: 0, toPeople: 0, margin: 0 }]);
+    setMarginTiers((prev) => [...prev, { fromPeople: 0, toPeople: 0, marginPerPerson: 0 }]);
   }
 
   function removeTier(index: number) {
@@ -397,10 +397,11 @@ export default function AdminPricingView({
 
           <div className="mt-6">
             <label className="block text-sm font-semibold text-neutral-700">
-              شرائح هامش الربح (من عدد — لعدد — المبلغ المضاف)
+              شرائح المكسب (من عدد — لعدد — المكسب على كل فرد)
             </label>
             <p className="mt-1 text-xs text-neutral-400">
-              سيب خانة &quot;إلى&quot; بصفر لو الشريحة مالهاش حد أقصى.
+              المكسب بيتضرب في عدد الأفراد. الباص والسفاري بيتحسبوا بعدد العربيات اللي العدد محتاجها، مش بالفرد.
+              سيب خانة &quot;إلى&quot; بصفر لو الشريحة مالهاش حد أقصى. أي عدد مش داخل في شريحة مالوش مكسب.
             </p>
             <div className="mt-2 flex flex-col gap-2">
               {marginTiers.map((tier, i) => (
@@ -420,13 +421,14 @@ export default function AdminPricingView({
                     placeholder="بدون حد"
                     className="w-20 rounded-lg border border-black/10 px-2 py-1 text-sm outline-none focus:border-brand-blue"
                   />
-                  <span className="text-sm text-neutral-500">فرد → أضف</span>
+                  <span className="text-sm text-neutral-500">فرد → مكسب</span>
                   <input
                     type="number"
-                    value={tier.margin}
-                    onChange={(e) => updateTier(i, "margin", e.target.value)}
+                    value={tier.marginPerPerson}
+                    onChange={(e) => updateTier(i, "marginPerPerson", e.target.value)}
                     className="w-28 rounded-lg border border-black/10 px-2 py-1 text-sm outline-none focus:border-brand-blue"
                   />
+                  <span className="text-sm text-neutral-500">جنيه للفرد</span>
                   <button
                     onClick={() => removeTier(i)}
                     className="rounded-lg px-2 py-1 text-xs font-bold text-red-600 hover:bg-red-50"

@@ -135,7 +135,21 @@ PATCH /api/admin/activities/activity-safari
 }
 ```
 
-نفس القاعدة في `settings.marginTiers` بس بـ `margin` بدل `price`.
+نفس القاعدة في `settings.marginTiers` بس بـ `marginPerPerson` بدل `price`: **المكسب على كل فرد**
+في المدى ده، وإجمالي المكسب = `marginPerPerson` × العدد. أي عدد مش داخل في شريحة مالوش مكسب.
+
+```json
+{ "settings": { "peoplePerCar": 6, "marginTiers": [
+  { "fromPeople": 20, "toPeople": 25, "marginPerPerson": 350 },
+  { "fromPeople": 26, "toPeople": 0,  "marginPerPerson": 300 }
+] } }
+```
+
+`margin` القديم (مبلغ ثابت على الرحلة كلها) **اتلغى**: لو اتبعت بيرجع `400`. الشرايح اللي
+كانت متخزنة بيه بتتقري كمكسب للفرد = `margin ÷ fromPeople` لحد ما تتحفظ من جديد.
+
+الباص والسفاري بيتحسبوا بعدد العربيات اللي العدد محتاجها (مش بالفرد)، فسعر الفرد بيتغير
+لما عربية جديدة تدخل، مش مع حدود شرايح المكسب.
 
 ### الإضافات
 

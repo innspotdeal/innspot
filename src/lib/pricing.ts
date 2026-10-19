@@ -182,28 +182,41 @@ export async function setProgramPricing(programId: string, pricing: ProgramPrici
   );
 }
 
-// شريحة هامش الربح: من عدد كذا لعدد كذا → المبلغ المضاف
-// toPeople = 0 معناها "وما فوق" (مفيش حد أقصى)
-export type MarginTier = { fromPeople: number; toPeople: number; margin: number };
+// شريحة المكسب: من عدد كذا لعدد كذا → المكسب على كل فرد
+// toPeople = 0 معناها "وما فوق" (مفيش حد أقصى). إجمالي المكسب = المكسب للفرد × العدد
+export type MarginTier = { fromPeople: number; toPeople: number; marginPerPerson: number };
 export type PricingSettings = { peoplePerCar: number; marginTiers: MarginTier[] };
+
+// الشرايح القديمة كانت مبلغ ثابت على الرحلة كلها (margin): بتتقري كمكسب للفرد
+// بحيث السعر عند أول عدد في الشريحة يفضل زي ما هو (7000 من 20 فرد = 350 للفرد)
+type StoredMarginTier = { fromPeople: number; toPeople: number; marginPerPerson?: number; margin?: number };
+
+function readMarginTier(tier: StoredMarginTier): MarginTier {
+  const fromPeople = Number(tier.fromPeople) || 0;
+  const marginPerPerson =
+    tier.marginPerPerson !== undefined
+      ? Number(tier.marginPerPerson)
+      : Math.round((Number(tier.margin) || 0) / Math.max(1, fromPeople));
+  return { fromPeople, toPeople: Number(tier.toPeople) || 0, marginPerPerson };
+}
 
 const DEFAULT_SETTINGS: PricingSettings = {
   peoplePerCar: 6,
   marginTiers: [
-    { fromPeople: 20, toPeople: 25, margin: 7000 },
-    { fromPeople: 26, toPeople: 31, margin: 10000 },
-    { fromPeople: 32, toPeople: 0, margin: 15000 },
+    { fromPeople: 20, toPeople: 25, marginPerPerson: 350 },
+    { fromPeople: 26, toPeople: 31, marginPerPerson: 385 },
+    { fromPeople: 32, toPeople: 0, marginPerPerson: 469 },
   ],
 };
 
 export async function getPricingSettings(): Promise<PricingSettings> {
-  const result = await pool.query<{ people_per_car: number; margin_tiers: MarginTier[] }>(
+  const result = await pool.query<{ people_per_car: number; margin_tiers: StoredMarginTier[] | null }>(
     "SELECT * FROM pricing_settings WHERE id = 1"
   );
   if (!result.rows[0]) return DEFAULT_SETTINGS;
   return {
     peoplePerCar: result.rows[0].people_per_car,
-    marginTiers: result.rows[0].margin_tiers ?? [],
+    marginTiers: (result.rows[0].margin_tiers ?? []).map(readMarginTier),
   };
 }
 
@@ -215,11 +228,12 @@ export async function setPricingSettings(settings: PricingSettings): Promise<voi
   );
 }
 
-function getProfitMargin(people: number, tiers: MarginTier[]): number {
+// المكسب على كل فرد للعدد ده — من أول شريحة العدد واقع جواها
+function getMarginPerPerson(people: number, tiers: MarginTier[]): number {
   for (const tier of tiers) {
     const aboveMin = people >= tier.fromPeople;
     const belowMax = tier.toPeople <= 0 || people <= tier.toPeople;
-    if (aboveMin && belowMax) return tier.margin;
+    if (aboveMin && belowMax) return tier.marginPerPerson;
   }
   return 0;
 }
@@ -315,7 +329,9 @@ export async function calculatePrice({
     0
   );
 
-  const profitMargin = getProfitMargin(people, settings.marginTiers);
+  // المكسب بالفرد، والانتقالات (الباص والسفاري) بعدد العربيات اللي العدد ده محتاجها —
+  // فسعر الفرد بيتحرك مع امتلاء العربيات بس، مش مع حدود شرايح المكسب
+  const profitMargin = getMarginPerPerson(people, settings.marginTiers) * people;
 
   const total = mealsAndTicketsPerPerson * people + carsCost + addonsCost + profitMargin;
 

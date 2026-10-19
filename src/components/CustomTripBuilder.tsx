@@ -5,16 +5,19 @@ import Image from "next/image";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import { useLanguage } from "@/lib/language-context";
 import type { CustomTripOption } from "@/data/custom-trip";
+import type { Hotel, RoomType } from "@/data/hotels";
 
 type Props = {
   options: CustomTripOption[];
+  // المبيت: الفنادق نفسها من صفحة الفنادق، بغرفها وأسعارها
+  hotels: Hotel[];
   // إضافات مشمولة في البرنامج — بتتحسب دايمًا ومش بتتشال (بتتحدد من /admin/pricing)
   includedAddonIds?: string[];
 };
 
 const MIN_PEOPLE = 1;
 
-export default function CustomTripBuilder({ options, includedAddonIds = [] }: Props) {
+export default function CustomTripBuilder({ options, hotels, includedAddonIds = [] }: Props) {
   const { lang } = useLanguage();
   const isEn = lang === "en";
   const t = (ar: string, en: string) => (isEn ? en : ar);
@@ -23,6 +26,8 @@ export default function CustomTripBuilder({ options, includedAddonIds = [] }: Pr
   const [stayKind, setStayKind] = useState<"day_use" | "overnight">("day_use");
   const [nights, setNights] = useState("1");
   const [hotelId, setHotelId] = useState("");
+  // نوع الغرفة المختار في الفندق (رقمه في قايمة غرف الفندق)
+  const [roomIndex, setRoomIndex] = useState<number | null>(null);
   const [breakfastPlaceId, setBreakfastPlaceId] = useState("");
   const [breakfastItemIds, setBreakfastItemIds] = useState<string[]>([]);
   const [carId, setCarId] = useState("");
@@ -41,10 +46,13 @@ export default function CustomTripBuilder({ options, includedAddonIds = [] }: Pr
 
   const peopleCount = Math.max(MIN_PEOPLE, Number(people) || 0);
   const nightCount = stayKind === "overnight" ? Math.max(1, Number(nights) || 1) : 0;
-  const hotel = find(hotelId);
-
-  // فطار اليوم التاني بيجي من الفندق لما يكون شامل فطار
-  const secondDayBreakfastIncluded = stayKind === "overnight" && Boolean(hotel?.includesBreakfast);
+  const hotel = hotels.find((h) => h.id === hotelId);
+  const room = hotel && roomIndex !== null ? hotel.roomTypes[roomIndex] : undefined;
+  const hotelName = (h: Hotel) => (isEn ? h.nameEn || h.name : h.name);
+  const roomName = (r: RoomType) => (isEn ? r.nameEn || r.name : r.name);
+  // عدد الغرف اللي المجموعة محتاجاها من نوع الغرفة ده (20 فرد في غرف مزدوجة = 10 غرف)
+  const roomsNeeded = (r: RoomType) => (r.capacity > 0 ? Math.ceil(peopleCount / r.capacity) : 1);
+  const fmt = (n: number) => n.toLocaleString("en-US");
 
   const breakfastItems = (byKind.breakfast_item ?? []).filter((o) => o.parentId === breakfastPlaceId);
   const lunchItems = (byKind.lunch_item ?? []).filter((o) => o.parentId === lunchPlaceId);
@@ -64,44 +72,57 @@ export default function CustomTripBuilder({ options, includedAddonIds = [] }: Pr
   }
 
   const lines = useMemo(() => {
-    const picked: { option: CustomTripOption; total: number; note?: string }[] = [];
+    const picked: { key: string; name: string; total: number; note?: string }[] = [];
+    const add = (o: CustomTripOption) => picked.push({ key: o.id, name: label(o), total: lineTotal(o) });
 
     if (stayKind === "overnight" && hotel) {
-      picked.push({
-        option: hotel,
-        total: lineTotal(hotel),
-        note: hotel.includesBreakfast ? t("شامل فطار اليوم التاني", "day-two breakfast included") : undefined,
-      });
+      if (!room) {
+        picked.push({ key: hotel.id, name: hotelName(hotel), total: 0, note: t("اختار نوع الغرفة", "Pick a room type") });
+      } else {
+        const rooms = roomsNeeded(room);
+        picked.push({
+          key: hotel.id,
+          name: `${hotelName(hotel)} — ${roomName(room)}`,
+          // الغرفة اللي ملهاش سعر بتتسعّر مع العميل، فمش بتدخل في الإجمالي
+          total: room.price * rooms * nightCount,
+          note:
+            room.price > 0
+              ? t(`${rooms} غرفة × ${nightCount} ليلة`, `${rooms} room(s) × ${nightCount} night(s)`)
+              : t("سعر المبيت هيتأكد معاك", "The stay will be priced with you"),
+        });
+      }
     }
 
     const bfPlace = find(breakfastPlaceId);
-    if (bfPlace && bfPlace.price > 0) picked.push({ option: bfPlace, total: lineTotal(bfPlace) });
+    if (bfPlace && bfPlace.price > 0) add(bfPlace);
     for (const id of breakfastItemIds) {
       const o = find(id);
-      if (o) picked.push({ option: o, total: lineTotal(o) });
+      if (o) add(o);
     }
 
     const car = find(carId);
-    if (car) picked.push({ option: car, total: lineTotal(car) });
+    if (car) add(car);
 
     const lnPlace = find(lunchPlaceId);
-    if (lnPlace && lnPlace.price > 0) picked.push({ option: lnPlace, total: lineTotal(lnPlace) });
+    if (lnPlace && lnPlace.price > 0) add(lnPlace);
     for (const id of lunchItemIds) {
       const o = find(id);
-      if (o) picked.push({ option: o, total: lineTotal(o) });
+      if (o) add(o);
     }
 
     for (const id of [...includedAddonIds, ...addonIds.filter((a) => !includedAddonIds.includes(a))]) {
       const o = find(id);
-      if (o) picked.push({ option: o, total: lineTotal(o) });
+      if (o) add(o);
     }
 
     return picked;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     options,
+    hotels,
     stayKind,
     hotelId,
+    roomIndex,
     nights,
     people,
     breakfastPlaceId,
@@ -116,7 +137,6 @@ export default function CustomTripBuilder({ options, includedAddonIds = [] }: Pr
 
   const total = lines.reduce((sum, l) => sum + l.total, 0);
   const perPerson = peopleCount > 0 ? Math.ceil(total / peopleCount) : 0;
-  const fmt = (n: number) => n.toLocaleString("en-US");
 
   function toggle(list: string[], setList: (v: string[]) => void, id: string) {
     setList(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
@@ -126,9 +146,9 @@ export default function CustomTripBuilder({ options, includedAddonIds = [] }: Pr
     t("طلب برنامج كاستم", "Custom program request"),
     `${t("عدد الأفراد", "People")}: ${peopleCount}`,
     stayKind === "overnight"
-      ? `${t("مبيت", "Overnight")}: ${nightCount} ${t("ليلة", "night(s)")}${hotel ? ` — ${label(hotel)}` : ""}`
+      ? `${t("مبيت", "Overnight")}: ${nightCount} ${t("ليلة", "night(s)")}${hotel ? ` — ${hotelName(hotel)}` : ""}${room ? ` (${roomName(room)})` : ""}`
       : t("داي يوز", "Day use"),
-    ...lines.map((l) => `- ${label(l.option)}: ${fmt(l.total)} EGP`),
+    ...lines.map((l) => `- ${l.name}: ${l.total > 0 ? `${fmt(l.total)} EGP` : l.note ?? ""}`),
     `${t("الإجمالي", "Total")}: ${fmt(total)} EGP`,
     `${t("للفرد", "Per person")}: ${fmt(perPerson)} EGP`,
   ].join("\n");
@@ -176,25 +196,69 @@ export default function CustomTripBuilder({ options, includedAddonIds = [] }: Pr
           )}
         </Card>
 
-        {/* المبيت */}
+        {/* المبيت: الفنادق من صفحة الفنادق — تختار الفندق وبعدين نوع الغرفة */}
         {stayKind === "overnight" && (
           <Card step="2" title={t("مكان المبيت", "Where you'll stay")}>
-            <div className="flex flex-col gap-2">
-              {(byKind.hotel ?? []).map((o) => (
-                <OptionRow
-                  key={o.id}
-                  selected={hotelId === o.id}
-                  onClick={() => setHotelId(hotelId === o.id ? "" : o.id)}
-                  option={o}
-                  detailsLabel={t("تفاصيل", "Details")}
-                  isEn={isEn}
-                  title={label(o)}
-                  meta={[o.tier, o.includesBreakfast ? t("شامل فطار", "breakfast included") : ""]
-                    .filter(Boolean)
-                    .join(" · ")}
-                />
-              ))}
-            </div>
+            {hotels.length === 0 ? (
+              <p className="text-sm text-neutral-500">{t("لسه مفيش فنادق متاحة.", "No hotels yet.")}</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {hotels.map((h) => {
+                  // أرخص سعر للفرد في الليلة في الفندق ده — من الغرف اللي ليها سعر
+                  const perHead = h.roomTypes
+                    .filter((r) => r.price > 0)
+                    .map((r) => Math.ceil(r.price / Math.max(1, r.capacity)));
+                  const from = perHead.length ? Math.min(...perHead) : 0;
+                  return (
+                    <div key={h.id}>
+                      <OptionRow
+                        selected={hotelId === h.id}
+                        onClick={() => {
+                          setHotelId(hotelId === h.id ? "" : h.id);
+                          setRoomIndex(null);
+                        }}
+                        title={hotelName(h)}
+                        meta={
+                          from > 0
+                            ? t(`من ${fmt(from)} ج للفرد في الليلة`, `From EGP ${fmt(from)} per person a night`)
+                            : t("السعر بيتأكد معاك", "Priced on request")
+                        }
+                        description={isEn ? h.descriptionEn || h.description : h.description}
+                        images={h.images}
+                        detailsLabel={t("تفاصيل", "Details")}
+                        isEn={isEn}
+                      />
+
+                      {hotelId === h.id && h.roomTypes.length > 0 && (
+                        <div className="mt-2 ms-4 flex flex-col gap-2 border-s-2 border-brand-orange/30 ps-3">
+                          <Label>{t("نوع الغرفة", "Room type")}</Label>
+                          {h.roomTypes.map((r, i) => (
+                            <OptionRow
+                              key={`${r.name}-${i}`}
+                              selected={roomIndex === i}
+                              onClick={() => setRoomIndex(roomIndex === i ? null : i)}
+                              title={roomName(r)}
+                              meta={
+                                r.price > 0
+                                  ? t(
+                                      `لـ ${r.capacity} فرد · ${fmt(r.price)} ج الليلة · ${roomsNeeded(r)} غرفة للعدد ده`,
+                                      `Sleeps ${r.capacity} · EGP ${fmt(r.price)} a night · ${roomsNeeded(r)} room(s) for this group`
+                                    )
+                                  : t(`لـ ${r.capacity} فرد · السعر بيتأكد معاك`, `Sleeps ${r.capacity} · priced on request`)
+                              }
+                              description={isEn ? r.descriptionEn || r.description : r.description}
+                              images={r.images}
+                              detailsLabel={t("تفاصيل", "Details")}
+                              isEn={isEn}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </Card>
         )}
 
@@ -202,11 +266,6 @@ export default function CustomTripBuilder({ options, includedAddonIds = [] }: Pr
         <Card
           step={stayKind === "overnight" ? "3" : "2"}
           title={t("الفطار", "Breakfast")}
-          hint={
-            secondDayBreakfastIncluded
-              ? t("فطار اليوم التاني مشمول في الفندق", "Day-two breakfast is included with the hotel")
-              : undefined
-          }
         >
           <div className="flex flex-col gap-2">
             {(byKind.breakfast_place ?? []).map((o) => (
@@ -340,12 +399,12 @@ export default function CustomTripBuilder({ options, includedAddonIds = [] }: Pr
           ) : (
             <ul className="mt-3 flex flex-col gap-2 border-b border-black/5 pb-4">
               {lines.map((l, i) => (
-                <li key={`${l.option.id}-${i}`} className="flex items-start justify-between gap-3 text-sm">
+                <li key={`${l.key}-${i}`} className="flex items-start justify-between gap-3 text-sm">
                   <span className="min-w-0 text-neutral-600">
-                    {label(l.option)}
+                    {l.name}
                     {l.note && <span className="block text-xs text-neutral-400">{l.note}</span>}
                   </span>
-                  <span className="shrink-0 font-semibold text-neutral-800">{fmt(l.total)}</span>
+                  <span className="shrink-0 font-semibold text-neutral-800">{l.total > 0 ? fmt(l.total) : "—"}</span>
                 </li>
               ))}
             </ul>
@@ -436,6 +495,8 @@ function OptionRow({
   option,
   title,
   meta,
+  description: descriptionProp,
+  images: imagesProp,
   detailsLabel,
   isEn,
 }: {
@@ -444,12 +505,16 @@ function OptionRow({
   option?: CustomTripOption;
   title: string;
   meta?: string;
+  // للفنادق والغرف: الوصف والصور بييجوا من صفحة الفنادق مش من خيار كاستم
+  description?: string;
+  images?: string[];
   detailsLabel: string;
   isEn: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const description = option ? (isEn ? option.descriptionEn || option.description : option.description) : "";
-  const images = option?.images ?? [];
+  const description =
+    descriptionProp ?? (option ? (isEn ? option.descriptionEn || option.description : option.description) : "");
+  const images = imagesProp ?? option?.images ?? [];
   const rating = option?.rating ?? 0;
   const hasDetails = Boolean(description || images.length > 0 || rating > 0);
 

@@ -237,6 +237,12 @@ export default function AdminCustomTripView({ initialOptions }: { initialOptions
               {KIND_LABELS[kind]}{" "}
               <span className="text-sm font-semibold text-neutral-400">({items.length})</span>
             </h2>
+            {kind === "hotel" && (
+              <p className="-mt-1 mb-3 rounded-lg bg-brand-orange/10 px-3 py-2 text-xs font-semibold text-brand-orange-dark">
+                المبيت في برنامج الكاستم بقى بيتاخد من صفحة الفنادق نفسها (الفندق وأنواع غرفه وأسعارها)،
+                فالأماكن دي مبقتش بتظهر للزوار.
+              </p>
+            )}
 
             <div className="overflow-x-auto rounded-2xl border border-black/10 bg-white">
               <table className="w-full min-w-[620px] text-right text-sm">

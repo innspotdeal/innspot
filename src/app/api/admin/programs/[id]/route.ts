@@ -20,6 +20,12 @@ function parseUpdateInput(body: unknown): ProgramUpdateInput {
   if (b.images !== undefined) update.images = toImageList(b.images);
   if (b.isCustom !== undefined) update.isCustom = Boolean(b.isCustom);
   if (b.isTicket !== undefined) update.isTicket = Boolean(b.isTicket);
+  if (b.isBuilder !== undefined) update.isBuilder = Boolean(b.isBuilder);
+  // برنامج الكاستم (مكوّن الرحلة) سعره بالطلب دايمًا، ومش برنامج تذاكر
+  if (update.isBuilder) {
+    update.isCustom = true;
+    update.isTicket = false;
+  }
 
   return update;
 }

@@ -22,6 +22,9 @@ function parseProgramInput(
     return { ok: false, error: "اسم البرنامج (عربي وإنجليزي) مطلوب" };
   }
 
+  // برنامج الكاستم (مكوّن الرحلة) سعره بالطلب دايمًا، ومش برنامج تذاكر
+  const isBuilder = Boolean(b.isBuilder);
+
   const rawId = typeof b.id === "string" && b.id.trim() ? b.id.trim() : slugify(nameEn || name);
   const id = slugify(rawId);
   if (!id) return { ok: false, error: "تعذر تكوين معرّف صالح للبرنامج" };
@@ -42,8 +45,9 @@ function parseProgramInput(
       includes: toList(b.includes),
       includesEn: toList(b.includesEn),
       images: toImageList(b.images),
-      isCustom: Boolean(b.isCustom),
-      isTicket: Boolean(b.isTicket),
+      isCustom: isBuilder || Boolean(b.isCustom),
+      isTicket: !isBuilder && Boolean(b.isTicket),
+      isBuilder,
     },
   };
 }

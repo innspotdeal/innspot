@@ -2,7 +2,7 @@
 
 import { Fragment, useState } from "react";
 import Link from "next/link";
-import type { CorporateProgram } from "@/data/programs";
+import { corporatePrograms as seedPrograms, type CorporateProgram } from "@/data/programs";
 import ImageUploader from "@/components/ImageUploader";
 import { itineraryToText } from "@/lib/program-input";
 
@@ -21,6 +21,7 @@ type NewProgramForm = {
   includesEn: string;
   isCustom: boolean;
   isTicket: boolean;
+  isBuilder: boolean;
 };
 
 const emptyForm: NewProgramForm = {
@@ -38,6 +39,7 @@ const emptyForm: NewProgramForm = {
   includesEn: "",
   isCustom: false,
   isTicket: false,
+  isBuilder: false,
 };
 
 type EditProgramForm = {
@@ -55,6 +57,7 @@ type EditProgramForm = {
   includesEn: string;
   isCustom: boolean;
   isTicket: boolean;
+  isBuilder: boolean;
 };
 
 function programToEditForm(p: CorporateProgram): EditProgramForm {
@@ -73,6 +76,7 @@ function programToEditForm(p: CorporateProgram): EditProgramForm {
     includesEn: p.includesEn.join("\n"),
     isCustom: p.isCustom,
     isTicket: p.isTicket,
+    isBuilder: p.isBuilder,
   };
 }
 
@@ -183,6 +187,40 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
     }
   }
 
+  // برنامج الكاستم الأصلي (مكوّن الرحلة) — لو اتمسح، بيرجع بنفس محتواه بضغطة
+  const builderSeed = seedPrograms.find((p) => p.isBuilder);
+  const hasBuilder = programs.some((p) => p.isBuilder);
+  const [restoring, setRestoring] = useState(false);
+
+  async function handleRestoreBuilder() {
+    if (!builderSeed) return;
+    setRestoring(true);
+    try {
+      const res = await fetch("/api/admin/programs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...builderSeed,
+          itinerary: itineraryToText(builderSeed.itinerary, "ar"),
+          itineraryEn: itineraryToText(builderSeed.itinerary, "en"),
+        }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        flash(data.error || "حدث خطأ", true);
+        return;
+      }
+      setPrograms((prev) => [...prev, data.program]);
+      setEditImages((prev) => ({ ...prev, [data.program.id]: data.program.images }));
+      setEditForms((prev) => ({ ...prev, [data.program.id]: programToEditForm(data.program) }));
+      flash("رجع برنامج الكاستم — وظاهر دلوقتي في صفحة رحلات الشركات");
+    } catch {
+      flash("تعذر الاتصال بالسيرفر", true);
+    } finally {
+      setRestoring(false);
+    }
+  }
+
   function updateEdit(id: string, key: keyof EditProgramForm, value: string) {
     setEditForms((prev) => ({ ...prev, [id]: { ...prev[id], [key]: value } }));
   }
@@ -212,6 +250,21 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
       )}
       {error && (
         <p className="mt-4 rounded-lg bg-red-50 px-4 py-2 text-sm font-semibold text-red-700">{error}</p>
+      )}
+
+      {!hasBuilder && builderSeed && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand-orange/30 bg-brand-orange/5 p-4">
+          <p className="text-sm font-semibold text-neutral-700">
+            برنامج الكاستم (اللي العميل بيركّب فيه رحلته بنفسه) مش موجود، فكارته مش ظاهر في صفحة رحلات الشركات.
+          </p>
+          <button
+            onClick={handleRestoreBuilder}
+            disabled={restoring}
+            className="rounded-lg bg-brand-orange px-4 py-2 text-sm font-bold text-white transition hover:bg-brand-orange/90 disabled:opacity-60"
+          >
+            {restoring ? "جاري الإرجاع..." : "رجّع برنامج الكاستم"}
+          </button>
+        </div>
       )}
 
       {showAddForm && (
@@ -279,6 +332,14 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
             />
             برنامج تذاكر — سعر ثابت للفرد من غير حاسبة (السعر بيتحدد من صفحة التسعير)
           </label>
+          <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
+            <input
+              type="checkbox"
+              checked={form.isBuilder}
+              onChange={(e) => setForm({ ...form, isBuilder: e.target.checked })}
+            />
+            برنامج الكاستم — صفحته بيركّب فيها العميل رحلته بنفسه (ده اللي بيظهر تحت «البرنامج الكاستم»)
+          </label>
 
           <div className="sm:col-span-2">
             <button
@@ -309,7 +370,9 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
                 <td className="px-4 py-3 font-semibold text-brand-blue">{program.name}</td>
                 <td className="px-4 py-3 text-neutral-600">{program.duration || "—"}</td>
                 <td className="px-4 py-3 text-neutral-600">
-                  {program.isTicket
+                  {program.isBuilder
+                    ? "الكاستم (تصميم الرحلة)"
+                    : program.isTicket
                     ? "تذاكر"
                     : program.isCustom
                       ? "مخصّص"
@@ -431,6 +494,19 @@ export default function AdminProgramsView({ initialPrograms }: { initialPrograms
                           }
                         />
                         برنامج تذاكر — سعر ثابت للفرد من غير حاسبة (السعر بيتحدد من صفحة التسعير)
+                      </label>
+                      <label className="flex items-center gap-2 text-sm font-semibold text-neutral-700">
+                        <input
+                          type="checkbox"
+                          checked={editForms[program.id]?.isBuilder ?? false}
+                          onChange={(e) =>
+                            setEditForms((prev) => ({
+                              ...prev,
+                              [program.id]: { ...prev[program.id], isBuilder: e.target.checked },
+                            }))
+                          }
+                        />
+                        برنامج الكاستم — صفحته بيركّب فيها العميل رحلته بنفسه
                       </label>
                       <div className="sm:col-span-2">
                         <label className="mb-1 block text-sm font-semibold text-neutral-700">الصور</label>

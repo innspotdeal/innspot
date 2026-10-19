@@ -79,13 +79,15 @@ export type ProgramInput = {
   images: string[];
   isCustom: boolean;
   isTicket: boolean;
+  // برنامج الكاستم: صفحته مكوّن رحلة يركّبها العميل بنفسه بدل مخطط ثابت
+  isBuilder: boolean;
 };
 
 export async function createProgram(input: ProgramInput): Promise<CorporateProgram> {
   const result = await pool.query<ProgramRow>(
     `INSERT INTO corporate_programs
-      (id, name, name_en, description, description_en, itinerary, start_time, end_time, duration, duration_en, includes, includes_en, images, is_custom, is_ticket, sort_order)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,
+      (id, name, name_en, description, description_en, itinerary, start_time, end_time, duration, duration_en, includes, includes_en, images, is_custom, is_ticket, is_builder, sort_order)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,
        (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM corporate_programs))
      RETURNING *`,
     [
@@ -104,6 +106,7 @@ export async function createProgram(input: ProgramInput): Promise<CorporateProgr
       input.images,
       input.isCustom,
       input.isTicket,
+      input.isBuilder,
     ]
   );
   return rowToProgram(result.rows[0]);
@@ -131,6 +134,7 @@ export async function updateProgram(
     images: "images",
     isCustom: "is_custom",
     isTicket: "is_ticket",
+    isBuilder: "is_builder",
     ticketPrice: "ticket_price",
   };
 

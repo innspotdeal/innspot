@@ -98,6 +98,8 @@ export type Program = {
   // برنامج تذاكر: سعر ثابت للفرد من غير حاسبة — السعر بيتعدل من /api/admin/pricing
   isTicket: boolean;
   ticketPrice: number;
+  // برنامج الكاستم: صفحته مكوّن رحلة يركّبها العميل بنفسه (بيتعمل isCustom تلقائي)
+  isBuilder?: boolean;
 };
 
 export type TransportVehicle = {

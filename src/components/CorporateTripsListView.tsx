@@ -126,9 +126,9 @@ export default function CorporateTripsListView({
               <p dir={textDir}>{tp.subtitle}</p>
             </div>
 
-            {/* اللوجو على كارت كريمي مايل، زي المربع المايل اللي في اللوجو نفسه */}
-            <div className="mx-auto w-52 shrink-0 -rotate-3 rounded-3xl bg-brand-cream p-5 shadow-xl sm:mx-0 sm:me-4 sm:w-48 md:w-60">
-              <Image src="/brand/logo.png" alt="Innspot" width={640} height={744} priority className="h-auto w-full" />
+            {/* الشخصية على مربعها البرتقالي المايل */}
+            <div className="mx-auto w-52 shrink-0 sm:mx-0 sm:me-4 sm:w-48 md:w-60">
+              <Image src="/brand/pfp.png" alt="Innspot" width={783} height={800} priority className="h-auto w-full drop-shadow-xl" />
             </div>
 
             {/* الشركات تحت لوجو إنسبوت: هنا على الموبايل والتابلت، وفي الشريط اللي تحت على الشاشات الكبيرة */}

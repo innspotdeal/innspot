@@ -41,12 +41,12 @@ export default function AboutView() {
           </div>
         </div>
         <Image
-          src="/brand/logo.png"
+          src="/brand/pfp.png"
           alt=""
-          width={640}
-          height={744}
+          width={783}
+          height={800}
           priority
-          className="mx-auto w-56 sm:w-72 md:w-full md:max-w-sm"
+          className="mx-auto w-56 drop-shadow-xl sm:w-72 md:w-full md:max-w-sm"
         />
       </section>
 

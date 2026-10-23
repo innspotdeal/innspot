@@ -23,13 +23,13 @@ export const siteConfig = {
     address: "الفيوم، جمهورية مصر العربية",
   },
 
-  // روابط التواصل الاجتماعي
-  // ملاحظة: لسه معندناش رابط تيك توك حقيقي، ده لسه placeholder لحين توفيره
+  // روابط التواصل الاجتماعي — أي لينك فاضي مش بيظهر في الفوتر
+  // تيك توك: لسه مفيش حساب حقيقي، حط اللينك هنا لما يبقى فيه
   social: {
     facebook: "https://www.facebook.com/profile.php?id=61564624791730",
     instagram: "https://www.instagram.com/innspot_agency",
     linkedin: "https://www.linkedin.com/company/phiomin",
-    tiktok: "https://tiktok.com/@innspot",
+    tiktok: "",
   },
 } as const;
 

@@ -7,19 +7,26 @@ import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 
+// رمز سوشيال على طريقة أيقونات الهوية: رمز أزرق فوق مربع برتقالي مايل
+function BrandGlyph({ icon }: { icon: string }) {
+  return (
+    <span className="relative grid size-7 place-items-center">
+      <span aria-hidden="true" className="absolute inset-0.5 -rotate-6 rounded-[5px] bg-brand-orange-light" />
+      <i className={`fi ${icon} relative text-lg leading-none text-brand-blue`} aria-hidden="true" />
+    </span>
+  );
+}
+
 export default function Footer() {
   const { lang } = useLanguage();
   const t = translations[lang];
   const name = lang === "en" ? siteConfig.nameEn : siteConfig.name;
   const tagline = lang === "en" ? siteConfig.taglineEn : siteConfig.tagline;
 
-  // إنستجرام وفيسبوك من أيقونات الهوية، والباقي مالوش أيقونة فيها فبيتلوّن بالأزرق
+  // إنستجرام وفيسبوك من أيقونات الهوية المرسومة، والباقي بنفس شكلها.
+  // أي حساب لينكه فاضي في data/site.ts مش بيظهر
   const socials = [
-    {
-      href: buildWhatsAppLink(t.inquiry(name)),
-      label: t.footer.whatsapp,
-      icon: <i className="fi fi-brands-whatsapp leading-none" aria-hidden="true" />,
-    },
+    { href: buildWhatsAppLink(t.inquiry(name)), label: t.footer.whatsapp, icon: <BrandGlyph icon="fi-brands-whatsapp" /> },
     {
       href: siteConfig.social.facebook,
       label: t.footer.facebook,
@@ -30,21 +37,19 @@ export default function Footer() {
       label: t.footer.instagram,
       icon: <Image src="/brand/icons/instagram.png" alt="" width={184} height={172} className="h-7 w-auto" />,
     },
-    {
-      href: siteConfig.social.linkedin,
-      label: t.footer.linkedin,
-      icon: <i className="fi fi-brands-linkedin leading-none" aria-hidden="true" />,
-    },
-    {
-      href: siteConfig.social.tiktok,
-      label: t.footer.tiktok,
-      icon: <i className="fi fi-brands-tik-tok leading-none" aria-hidden="true" />,
-    },
+    { href: siteConfig.social.linkedin, label: t.footer.linkedin, icon: <BrandGlyph icon="fi-brands-linkedin" /> },
+    { href: siteConfig.social.tiktok, label: t.footer.tiktok, icon: <BrandGlyph icon="fi-brands-tik-tok" /> },
+  ].filter((social) => social.href);
+
+  const contacts = [
+    { icon: "fi-rr-phone-call", text: siteConfig.contact.phone, href: `tel:+${siteConfig.whatsappNumber}`, ltr: true },
+    { icon: "fi-rr-envelope", text: siteConfig.contact.email, href: `mailto:${siteConfig.contact.email}`, ltr: true },
+    { icon: "fi-rr-marker", text: siteConfig.contact.address },
   ];
 
   return (
     <footer className="mt-auto bg-brand-blue text-white">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
           <div className="flex items-center gap-4">
             <Image
@@ -56,15 +61,29 @@ export default function Footer() {
             />
             <Image src="/brand/wordmark-cream.png" alt={name} width={514} height={226} className="h-12 w-auto" />
           </div>
-          <p className="mt-4 text-sm leading-relaxed text-white/80">{tagline}</p>
+          <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/80">{tagline}</p>
+          <div className="mt-5 flex flex-wrap gap-3">
+            {socials.map((social) => (
+              <a
+                key={social.label}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={social.label}
+                className="flex size-11 items-center justify-center rounded-xl bg-brand-cream transition hover:-translate-y-0.5"
+              >
+                {social.icon}
+              </a>
+            ))}
+          </div>
         </div>
 
         <div>
-          <h4 className="text-sm font-bold text-white/90">{t.footer.quickLinks}</h4>
-          <ul className="mt-3 flex flex-col gap-2">
+          <h4 className="text-sm font-bold text-brand-cream">{t.footer.quickLinks}</h4>
+          <ul className="mt-4 flex flex-col gap-2.5">
             {navLinks.map((link) => (
               <li key={link.href}>
-                <Link href={link.href} className="text-sm text-white/80 hover:text-white">
+                <Link href={link.href} className="text-sm text-white/80 transition hover:text-white">
                   {t.nav[link.key]}
                 </Link>
               </li>
@@ -73,28 +92,24 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4 className="text-sm font-bold text-white/90">{t.footer.contactUs}</h4>
-          <ul className="mt-3 flex flex-col gap-2 text-sm text-white/80">
-            <li>
-              <span dir="ltr">{siteConfig.contact.phone}</span>
-            </li>
-            <li>{siteConfig.contact.email}</li>
-            <li>{siteConfig.contact.address}</li>
+          <h4 className="text-sm font-bold text-brand-cream">{t.footer.contactUs}</h4>
+          <ul className="mt-4 flex flex-col gap-3 text-sm text-white/80">
+            {contacts.map((contact) => {
+              const text = <span dir={contact.ltr ? "ltr" : undefined}>{contact.text}</span>;
+              return (
+                <li key={contact.icon} className="flex items-center gap-3">
+                  <i className={`fi ${contact.icon} text-base leading-none text-brand-orange-light`} aria-hidden="true" />
+                  {contact.href ? (
+                    <a href={contact.href} className="transition hover:text-white">
+                      {text}
+                    </a>
+                  ) : (
+                    text
+                  )}
+                </li>
+              );
+            })}
           </ul>
-          <div className="mt-4 flex flex-wrap gap-3">
-            {socials.map((social) => (
-              <a
-                key={social.label}
-                href={social.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={social.label}
-                className="flex size-11 items-center justify-center rounded-xl bg-brand-cream text-xl text-brand-blue transition hover:-translate-y-0.5"
-              >
-                {social.icon}
-              </a>
-            ))}
-          </div>
         </div>
       </div>
 

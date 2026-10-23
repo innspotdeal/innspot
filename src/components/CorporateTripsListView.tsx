@@ -15,13 +15,13 @@ const PILL_EASE =
   "ease-[linear(0,0.029_0.8%,0.13_1.8%,0.908_7.2%,1.051_9.1%,1.112_11.2%,1.116_12.2%,1.106_13.4%,1.007_19.5%,0.987_23.1%,1.001_35%,1)]";
 
 export default function CorporateTripsListView({
-  fixedProgram,
+  fixedPrograms,
   customProgram,
-  fixedStartingPrice,
+  startingPrices,
 }: {
-  fixedProgram: CorporateProgram | null;
+  fixedPrograms: CorporateProgram[];
   customProgram: CorporateProgram | null;
-  fixedStartingPrice?: number;
+  startingPrices: Record<string, number>;
 }) {
   const { lang, toggleLang } = useLanguage();
   const t = translations[lang];
@@ -154,7 +154,7 @@ export default function CorporateTripsListView({
         </div>
       </header>
 
-      <TripsGuide fixedProgram={fixedProgram} customProgram={customProgram} fixedStartingPrice={fixedStartingPrice} />
+      <TripsGuide fixedPrograms={fixedPrograms} customProgram={customProgram} startingPrices={startingPrices} />
     </div>
   );
 }

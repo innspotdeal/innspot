@@ -30,6 +30,8 @@ export type ProgramPricing = {
   needsBus: boolean;
   // البرنامج فيه جزء سفاري محتاج عربيات دفع رباعي؟ (جزء من الرحلة نفسها)
   needsSafari: boolean;
+  // السفاري اختيارية: العميل بيعلّم «عايز سفاري» زي الانتقالات، ولو معلّمش مش بتتحسب
+  safariOptional: boolean;
 };
 
 type ProgramPricingRow = {
@@ -41,6 +43,8 @@ type ProgramPricingRow = {
   transport_group: string | null;
   needs_bus: boolean | null;
   needs_safari: boolean | null;
+  // ممكن ميكونش اتعمل لسه — أول حفظ للتسعير بيضيفه
+  safari_optional?: boolean | null;
 };
 
 function rowToProgramPricing(row: ProgramPricingRow): ProgramPricing {
@@ -52,7 +56,35 @@ function rowToProgramPricing(row: ProgramPricingRow): ProgramPricing {
     transportGroup: row.transport_group ?? "safari",
     needsBus: row.needs_bus ?? true,
     needsSafari: row.needs_safari ?? row.transport_group === "safari",
+    safariOptional: row.safari_optional ?? false,
   };
+}
+
+// إزاي السفاري بتظهر للعميل في البرنامج — من غير أي سعر
+export type SafariMode = "included" | "optional";
+
+export async function listProgramSafariModes(): Promise<Record<string, SafariMode>> {
+  const all = await listProgramPricing();
+  const modes: Record<string, SafariMode> = {};
+  for (const [programId, pricing] of Object.entries(all)) {
+    if (pricing.needsSafari) modes[programId] = pricing.safariOptional ? "optional" : "included";
+  }
+  return modes;
+}
+
+// عمود السفاري الاختيارية (نفس scripts/safari-optional-migration.mjs): أول حفظ للتسعير بيضيفه
+let safariOptionalColumnReady: Promise<void> | null = null;
+
+function ensureSafariOptionalColumn(): Promise<void> {
+  safariOptionalColumnReady ??= pool
+    .query("ALTER TABLE program_pricing ADD COLUMN IF NOT EXISTS safari_optional BOOLEAN NOT NULL DEFAULT false")
+    .then(() => undefined)
+    .catch((err) => {
+      // نجرب تاني مع الحفظ الجاي بدل ما نفضل شايلين الفشل
+      safariOptionalColumnReady = null;
+      throw err;
+    });
+  return safariOptionalColumnReady;
 }
 
 type VehicleRow = {
@@ -157,10 +189,15 @@ export async function listProgramPricing(): Promise<Record<string, ProgramPricin
   return Object.fromEntries(result.rows.map((row) => [row.program_id, rowToProgramPricing(row)]));
 }
 
-export async function setProgramPricing(programId: string, pricing: ProgramPricing): Promise<void> {
+// safariOptional مش مبعوت (لوحة تحكم أقدم) = يفضل زي ما هو
+export async function setProgramPricing(
+  programId: string,
+  pricing: Omit<ProgramPricing, "safariOptional"> & { safariOptional?: boolean }
+): Promise<void> {
+  await ensureSafariOptionalColumn();
   await pool.query(
-    `INSERT INTO program_pricing (program_id, breakfast_per_person, lunch_per_person, tickets_per_person, car_price, transport_group, needs_bus, needs_safari)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+    `INSERT INTO program_pricing (program_id, breakfast_per_person, lunch_per_person, tickets_per_person, car_price, transport_group, needs_bus, needs_safari, safari_optional)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,COALESCE($9,false))
      ON CONFLICT (program_id) DO UPDATE SET
        breakfast_per_person = EXCLUDED.breakfast_per_person,
        lunch_per_person = EXCLUDED.lunch_per_person,
@@ -168,7 +205,8 @@ export async function setProgramPricing(programId: string, pricing: ProgramPrici
        car_price = EXCLUDED.car_price,
        transport_group = EXCLUDED.transport_group,
        needs_bus = EXCLUDED.needs_bus,
-       needs_safari = EXCLUDED.needs_safari`,
+       needs_safari = EXCLUDED.needs_safari,
+       safari_optional = COALESCE($9, program_pricing.safari_optional)`,
     [
       programId,
       pricing.breakfastPerPerson,
@@ -178,6 +216,7 @@ export async function setProgramPricing(programId: string, pricing: ProgramPrici
       pricing.transportGroup || "safari",
       pricing.needsBus,
       pricing.needsSafari,
+      pricing.safariOptional ?? null,
     ]
   );
 }
@@ -245,6 +284,8 @@ export type CalculatePriceInput = {
   addons: string[];
   // الانتقالات اختيارية — العميل ممكن ييجي بمواصلاته
   includeTransport?: boolean;
+  // العميل علّم «عايز سفاري» — ليها لازمة بس في البرنامج اللي سفاريه اختيارية
+  includeSafari?: boolean;
   // أقل عدد أفراد للبرنامج لو معروف — لو مش مبعوت بيتجاب من البرنامج نفسه
   minPeople?: number;
 };
@@ -257,6 +298,8 @@ export type CalculatePriceResult =
       // أسماء الإضافات اللي اتحسبت فعلًا (المشمولة + المختارة)
       includedAddons: { name: string; nameEn: string }[];
       selectedAddons: { name: string; nameEn: string }[];
+      // السفاري الاختيارية اتحسبت (العميل علّم عليها)
+      safariChosen: boolean;
     }
   | {
       ok: false;
@@ -273,6 +316,7 @@ export async function calculatePrice({
   people,
   addons,
   includeTransport = true,
+  includeSafari = false,
   minPeople,
 }: CalculatePriceInput): Promise<CalculatePriceResult> {
   const pricing = await getProgramPricing(programId);
@@ -316,8 +360,9 @@ export async function calculatePrice({
       : Math.ceil(people / settings.peoplePerCar) * pricing.carPrice;
   }
 
-  // عربيات السفاري جزء من الرحلة نفسها، مش اختيارية
-  if (pricing.needsSafari) {
+  // عربيات السفاري: جزء من الرحلة نفسها، أو اختيارية يعلّم عليها العميل زي الانتقالات
+  const safariChosen = pricing.needsSafari && pricing.safariOptional && includeSafari;
+  if (pricing.needsSafari && (!pricing.safariOptional || includeSafari)) {
     const safariVehicles = await listVehicles("safari");
     carsCost += safariVehicles.length ? allocateFleet(people, safariVehicles).total : 0;
   }
@@ -345,6 +390,7 @@ export async function calculatePrice({
     total: Math.ceil(total),
     includedAddons: programAddons.included.map(names),
     selectedAddons: chosen.map(names),
+    safariChosen,
   };
 }
 

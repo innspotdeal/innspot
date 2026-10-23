@@ -20,7 +20,8 @@ function parseUpdateInput(
   if (b.includes !== undefined) update.includes = toList(b.includes);
   if (b.includesEn !== undefined) update.includesEn = toList(b.includesEn);
   if (b.images !== undefined) update.images = toImageList(b.images);
-  if (b.isCustom !== undefined) update.isCustom = Boolean(b.isCustom);
+  // نوع «مخصّص» اتشال: البرنامج يتشال منه بس، ومحدش يتحوّل له (الكاستم بس، تحت)
+  if (b.isCustom === false) update.isCustom = false;
   if (b.isTicket !== undefined) update.isTicket = Boolean(b.isTicket);
   if (b.isBuilder !== undefined) update.isBuilder = Boolean(b.isBuilder);
   // برنامج الكاستم (مكوّن الرحلة) سعره بالطلب دايمًا، ومش برنامج تذاكر

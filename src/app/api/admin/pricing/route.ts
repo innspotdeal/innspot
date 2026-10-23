@@ -94,6 +94,8 @@ export async function PATCH(request: Request) {
         transportGroup: p.transportGroup === "bus" ? "bus" : "safari",
         needsBus: p.needsBus === undefined ? true : Boolean(p.needsBus),
         needsSafari: Boolean(p.needsSafari),
+        // لوحة تحكم أقدم مش بتبعته: يفضل زي ما هو
+        safariOptional: p.safariOptional === undefined ? undefined : Boolean(p.safariOptional),
       });
     }
   }

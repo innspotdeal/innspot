@@ -51,7 +51,8 @@ function parseProgramInput(
       includes: toList(b.includes),
       includesEn: toList(b.includesEn),
       images: toImageList(b.images),
-      isCustom: isBuilder || Boolean(b.isCustom),
+      // نوع «مخصّص» (سعر بالطلب من غير حاسبة) اتشال (المالك، 2026-10-24): الكاستم بس سعره بالطلب
+      isCustom: isBuilder,
       isTicket: !isBuilder && Boolean(b.isTicket),
       isBuilder,
       minPeople,

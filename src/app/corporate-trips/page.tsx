@@ -12,17 +12,17 @@ export const revalidate = 60;
 
 export default async function CorporateTripsPage() {
   const programs = await listPrograms();
-  // الصفحة بتعرض طريقتين بس: البرنامج الثابت (أول برنامج عادي بحاسبة سعر في الترتيب — برنامج الباص)
-  // والبرنامج الكاستم (اللي بيفتح صفحة تصميم الرحلة). باقي البرامج صفحاتها شغالة بس مش ظاهرة هنا
-  const fixedProgram = programs.find((p) => !p.isCustom && !p.isBuilder && !p.isTicket) ?? null;
+  // الصفحة بتعرض طريقتين: البرامج الثابتة (كل برنامج عادي بحاسبة سعر، بالترتيب)
+  // والبرنامج الكاستم (اللي بيفتح صفحة تصميم الرحلة). برامج التذاكر صفحاتها شغالة بس مش ظاهرة هنا
+  const fixedPrograms = programs.filter((p) => !p.isCustom && !p.isBuilder && !p.isTicket);
   const customProgram = programs.find((p) => p.isBuilder) ?? null;
-  const startingPrices = fixedProgram ? await getStartingPrices([fixedProgram.id]) : {};
+  const startingPrices = await getStartingPrices(fixedPrograms.map((p) => p.id));
 
   return (
     <CorporateTripsListView
-      fixedProgram={fixedProgram}
+      fixedPrograms={fixedPrograms}
       customProgram={customProgram}
-      fixedStartingPrice={fixedProgram ? startingPrices[fixedProgram.id] : undefined}
+      startingPrices={startingPrices}
     />
   );
 }

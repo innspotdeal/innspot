@@ -6,6 +6,8 @@ import { getProgramById, listPrograms } from "@/lib/programs-repo";
 import { listActiveOptions } from "@/lib/custom-trip-repo";
 import { listHotels } from "@/lib/hotels-repo";
 import { listProgramAddonModes, listPublicProgramAddons } from "@/lib/program-addons";
+import { listProgramSafariModes } from "@/lib/pricing";
+import { getSafariInfo } from "@/lib/safari-info";
 
 export const revalidate = 60;
 
@@ -66,13 +68,19 @@ export default async function CorporateProgramDetailPage({
     );
   }
 
-  const programAddons = await listPublicProgramAddons(programs.map((p) => p.id));
+  const [programAddons, safariModes, safariInfo] = await Promise.all([
+    listPublicProgramAddons(programs.map((p) => p.id)),
+    listProgramSafariModes(),
+    getSafariInfo(),
+  ]);
 
   return (
     <CorporateProgramDetailView
       program={program}
       programs={programs}
       programAddons={programAddons}
+      safariModes={safariModes}
+      safariInfo={safariInfo}
     />
   );
 }

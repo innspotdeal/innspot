@@ -59,24 +59,30 @@ function SafariComparison({ safari }: { safari: Safari }) {
 }
 
 export default function TripsGuide({
-  fixedProgram,
+  fixedPrograms,
   customProgram,
-  fixedStartingPrice,
+  startingPrices,
 }: {
-  fixedProgram: CorporateProgram | null;
+  fixedPrograms: CorporateProgram[];
   customProgram: CorporateProgram | null;
-  fixedStartingPrice?: number;
+  startingPrices: Record<string, number>;
 }) {
   const { lang } = useLanguage();
   const g = tripsGuide[lang];
 
-  // البرنامج الكاستم بيظهر بس لو موجود — لو اتمسح (أو اتوقف) جزءه كله بيختفي
+  // كل البرامج الثابتة تحت «البرنامج الثابت» جنب بعض (المالك، 2026-10-24)، والكاستم بيظهر
+  // بس لو موجود — لو اتمسح (أو اتوقف) جزءه كله بيختفي
   const choices = [
-    { choice: g.choose.fixed, program: fixedProgram, startingPrice: fixedStartingPrice, accent: "var(--color-brand-orange)" },
+    {
+      choice: g.choose.fixed,
+      cards: fixedPrograms.map((program) => ({ program, startingPrice: startingPrices[program.id] })),
+      accent: "var(--color-brand-orange)",
+    },
     ...(customProgram
-      ? [{ choice: g.choose.custom, program: customProgram, startingPrice: undefined, accent: "var(--color-brand-blue)" }]
+      ? [{ choice: g.choose.custom, cards: [{ program: customProgram, startingPrice: undefined }], accent: "var(--color-brand-blue)" }]
       : []),
   ];
+  const wide = choices.length > 1 || choices[0].cards.length > 1;
 
   return (
     <main dir={lang === "en" ? "ltr" : "rtl"} className="mx-auto mt-16 max-w-5xl sm:px-9.5">
@@ -134,19 +140,22 @@ export default function TripsGuide({
       {/* اختار الطريقة: البرنامج الثابت والكاستم، وتحت كل واحد الكارت بتاعه */}
       <section id="programs" className="mt-20 scroll-mt-8">
         <h2 className="text-4xl font-extrabold text-brand-blue sm:text-5xl">{g.choose.heading}</h2>
-        <div className={`mt-8 grid gap-12 md:gap-8 ${choices.length > 1 ? "md:grid-cols-2" : "max-w-xl"}`}>
-          {choices.map(({ choice, program, startingPrice, accent }) => (
-            <div key={choice.title} className="flex flex-col">
+        <div className={`mt-8 grid gap-12 md:gap-8 ${wide ? "md:grid-cols-2" : "max-w-xl"}`}>
+          {choices.map(({ choice, cards, accent }) => (
+            // أكتر من برنامج ثابت: ياخدوا العرض كله وكروتهم جنب بعض
+            <div key={choice.title} className={`flex flex-col ${cards.length > 1 ? "md:col-span-2" : ""}`}>
               <p className="text-sm font-extrabold text-brand-orange">{choice.tag}</p>
               <h3 className="mt-1 text-3xl font-extrabold text-brand-blue">{choice.title}</h3>
-              <div className="mt-3 space-y-3 leading-relaxed text-neutral-700">
+              <div className="mt-3 max-w-3xl space-y-3 leading-relaxed text-neutral-700">
                 {choice.paragraphs.map((paragraph) => (
                   <p key={paragraph}>{paragraph}</p>
                 ))}
               </div>
-              {program && (
-                <div className="mt-auto pt-6">
-                  <ProgramCard program={program} startingPrice={startingPrice} accent={accent} />
+              {cards.length > 0 && (
+                <div className={`mt-auto grid gap-8 pt-6 ${cards.length > 1 ? "md:grid-cols-2" : ""}`}>
+                  {cards.map(({ program, startingPrice }) => (
+                    <ProgramCard key={program.id} program={program} startingPrice={startingPrice} accent={accent} />
+                  ))}
                 </div>
               )}
             </div>

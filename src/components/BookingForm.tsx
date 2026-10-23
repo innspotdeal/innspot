@@ -3,19 +3,29 @@
 import { useState, type FormEvent } from "react";
 import type { CorporateProgram } from "@/data/programs";
 import type { PublicAddon } from "@/lib/program-addons";
+import type { SafariMode } from "@/lib/pricing";
+import type { SafariInfo } from "@/lib/safari-info";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
 import ResultCard, { type PriceResult } from "@/components/ResultCard";
 import AddonDetails from "@/components/AddonDetails";
 
+// السفاري مش إضافة من القايمة: معرّف لصفحة صورها وتفاصيلها بس، مستحيل يتكرر مع إضافة
+const SAFARI_ID = "__safari";
+
 export default function BookingForm({
   programs,
   programAddons,
+  safariModes,
+  safariInfo,
   initialProgramId = "",
 }: {
   programs: CorporateProgram[];
   // لكل برنامج: الإضافات المشمولة والمتاحة للاختيار (من غير أسعار)
   programAddons: Record<string, PublicAddon[]>;
+  // لكل برنامج فيه سفاري: مشمولة، أو اختيارية يعلّم عليها العميل زي الانتقالات
+  safariModes: Record<string, SafariMode>;
+  safariInfo: SafariInfo;
   initialProgramId?: string;
 }) {
   const { lang } = useLanguage();
@@ -25,6 +35,7 @@ export default function BookingForm({
   const [people, setPeople] = useState("");
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
   const [includeTransport, setIncludeTransport] = useState(true);
+  const [includeSafari, setIncludeSafari] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PriceResult | null>(null);
@@ -36,7 +47,16 @@ export default function BookingForm({
   const optionalAddons = addons.filter((a) => !a.included);
   const addonName = (a: PublicAddon) => (lang === "en" ? a.nameEn || a.name : a.name);
   const hasDetails = (a: PublicAddon) => Boolean(a.images.length || (lang === "en" ? a.descriptionEn || a.description : a.description));
-  const shown = addons.find((a) => a.id === detailsId) ?? null;
+  const safariMode = safariModes[programId];
+  // السفاري بتفتح نفس صفحة «الصور والتفاصيل» بتاعة الإضافات
+  const safari: PublicAddon = {
+    id: SAFARI_ID,
+    name: t.safariName,
+    nameEn: t.safariName,
+    included: safariMode === "included",
+    ...safariInfo,
+  };
+  const shown = detailsId === SAFARI_ID ? safari : (addons.find((a) => a.id === detailsId) ?? null);
 
   function toggleAddon(key: string) {
     setSelectedAddons((prev) =>
@@ -70,6 +90,7 @@ export default function BookingForm({
           people: peopleNumber,
           addons: selectedAddons,
           includeTransport,
+          includeSafari: safariMode === "optional" && includeSafari,
           lang,
         }),
       });
@@ -105,6 +126,7 @@ export default function BookingForm({
               setProgramId(e.target.value);
               // كل برنامج ليه إضافاته — الاختيار القديم ممكن ميكونش متاح في الجديد
               setSelectedAddons([]);
+              setIncludeSafari(false);
               setResult(null);
             }}
             className="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm focus:border-brand-blue focus:outline-none"
@@ -140,21 +162,48 @@ export default function BookingForm({
 
         <div>
           <span className="mb-2 block text-sm font-bold text-neutral-800">{t.transportLabel}</span>
-          <label className="mb-5 flex cursor-pointer items-center gap-3 rounded-xl border border-neutral-300 px-4 py-3 text-sm">
-            <input
-              type="checkbox"
-              checked={includeTransport}
-              onChange={(e) => setIncludeTransport(e.target.checked)}
-              className="size-4 accent-brand-orange"
-            />
-            <span className="font-medium text-neutral-700">{t.transportInclude}</span>
-          </label>
+          <div className="mb-5 flex flex-col gap-2">
+            <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-neutral-300 px-4 py-3 text-sm">
+              <input
+                type="checkbox"
+                checked={includeTransport}
+                onChange={(e) => setIncludeTransport(e.target.checked)}
+                className="size-4 accent-brand-orange"
+              />
+              <span className="font-medium text-neutral-700">{t.transportInclude}</span>
+            </label>
 
-          {includedAddons.length > 0 && (
+            {/* السفاري الاختيارية: علامة زي الانتقالات، وبتتحسب بعدد العربيات */}
+            {safariMode === "optional" && (
+              <div className="rounded-xl border border-neutral-300 text-sm">
+                <label className="flex cursor-pointer items-center gap-3 px-4 py-3">
+                  <input
+                    type="checkbox"
+                    checked={includeSafari}
+                    onChange={(e) => setIncludeSafari(e.target.checked)}
+                    className="size-4 accent-brand-orange"
+                  />
+                  <span className="font-medium text-neutral-700">{t.safariInclude}</span>
+                </label>
+                {/* تحت الكلام مش جنبه: الاسم طويل ومكانه على الموبايل ضيق */}
+                {hasDetails(safari) && (
+                  <button
+                    type="button"
+                    onClick={() => setDetailsId(SAFARI_ID)}
+                    className="-mt-1 mb-3 ms-11 text-xs font-bold text-brand-blue underline underline-offset-2"
+                  >
+                    {t.addonDetails}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          {(includedAddons.length > 0 || safariMode === "included") && (
             <div className="mb-5">
               <span className="mb-2 block text-sm font-bold text-neutral-800">{t.includedLabel}</span>
               <div className="flex flex-wrap gap-2">
-                {includedAddons.map((addon) => (
+                {[...(safariMode === "included" ? [safari] : []), ...includedAddons].map((addon) => (
                   <span
                     key={addon.id}
                     className="inline-flex items-center gap-1.5 rounded-full bg-brand-blue/5 px-3 py-1.5 text-sm font-semibold text-brand-blue"
@@ -237,9 +286,10 @@ export default function BookingForm({
         <AddonDetails
           addon={shown}
           isEn={lang === "en"}
-          selected={selectedAddons.includes(shown.id)}
+          selected={shown.id === SAFARI_ID ? includeSafari : selectedAddons.includes(shown.id)}
           onAdd={() => {
-            if (!selectedAddons.includes(shown.id)) toggleAddon(shown.id);
+            if (shown.id === SAFARI_ID) setIncludeSafari(true);
+            else if (!selectedAddons.includes(shown.id)) toggleAddon(shown.id);
             setDetailsId(null);
           }}
           onClose={() => setDetailsId(null)}

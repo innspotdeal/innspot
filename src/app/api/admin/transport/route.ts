@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getSafariInfo, setSafariInfo } from "@/lib/safari-info";
 import { createVehicle, listTransportVehicles } from "@/lib/transport-repo";
 
 function slugify(text: string): string {
@@ -6,8 +7,32 @@ function slugify(text: string): string {
 }
 
 export async function GET() {
-  const vehicles = await listTransportVehicles();
-  return NextResponse.json({ ok: true, vehicles });
+  const [vehicles, safariInfo] = await Promise.all([listTransportVehicles(), getSafariInfo()]);
+  return NextResponse.json({ ok: true, vehicles, safariInfo });
+}
+
+// صور السفاري ووصفها اللي بيظهروا للعميل جنب «عايز سفاري»: { safariInfo: { description, descriptionEn, images } }
+export async function PATCH(request: Request) {
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ ok: false, error: "بيانات غير صالحة" }, { status: 400 });
+  }
+
+  const info = ((body ?? {}) as Record<string, unknown>).safariInfo as Record<string, unknown> | undefined;
+  const text = (value: unknown) => (typeof value === "string" ? value.trim() : "");
+  const images = Array.isArray(info?.images)
+    ? info.images.filter((src): src is string => typeof src === "string" && src.trim() !== "").map((src) => src.trim())
+    : [];
+  const description = text(info?.description);
+  const descriptionEn = text(info?.descriptionEn);
+  if (!info || description.length > 2000 || descriptionEn.length > 2000 || images.length > 12) {
+    return NextResponse.json({ ok: false, error: "بيانات السفاري غير صالحة" }, { status: 400 });
+  }
+
+  await setSafariInfo({ description, descriptionEn, images });
+  return NextResponse.json({ ok: true, safariInfo: { description, descriptionEn, images } });
 }
 
 export async function POST(request: Request) {

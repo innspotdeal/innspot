@@ -11,15 +11,21 @@ import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
 import type { CorporateProgram } from "@/data/programs";
 import type { PublicAddon } from "@/lib/program-addons";
+import type { SafariMode } from "@/lib/pricing";
+import type { SafariInfo } from "@/lib/safari-info";
 
 export default function CorporateProgramDetailView({
   program,
   programs,
   programAddons,
+  safariModes,
+  safariInfo,
 }: {
   program: CorporateProgram;
   programs: CorporateProgram[];
   programAddons: Record<string, PublicAddon[]>;
+  safariModes: Record<string, SafariMode>;
+  safariInfo: SafariInfo;
 }) {
   const router = useRouter();
   const { lang } = useLanguage();
@@ -148,6 +154,8 @@ export default function CorporateProgramDetailView({
           <BookingForm
             programs={programs}
             programAddons={programAddons}
+            safariModes={safariModes}
+            safariInfo={safariInfo}
             initialProgramId={program.id}
           />
         </div>

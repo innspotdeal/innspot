@@ -41,14 +41,17 @@ export default function ProgramCard({
       href={`/corporate-trips/${program.id}`}
       className="group flex flex-col overflow-hidden rounded-[19px] bg-white text-center shadow-[-1px_15px_30px_-12px_rgba(0,0,0,0.45)] transition-[translate] duration-300 hover:-translate-y-1.5"
     >
-      <div className="relative h-[230px] shrink-0 overflow-hidden">
-        <Image
-          src={program.images[0]}
-          alt={name}
-          fill
-          sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
-          className="object-cover transition-[scale] duration-700 group-hover:scale-105"
-        />
+      {/* برنامج لسه من غير صور (بيتملا من لوحة التحكم) مش بيوقّع الصفحة */}
+      <div className="relative h-[230px] shrink-0 overflow-hidden bg-brand-cream">
+        {program.images[0] && (
+          <Image
+            src={program.images[0]}
+            alt={name}
+            fill
+            sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
+            className="object-cover transition-[scale] duration-700 group-hover:scale-105"
+          />
+        )}
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/30 to-transparent" />
       </div>
 

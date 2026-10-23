@@ -12,6 +12,8 @@ type Messages = {
   peopleInvalid: string;
   // أقل عدد بيختلف من برنامج للتاني
   minPeople: (n: number) => string;
+  // السفاري الاختيارية في ملخص السعر ورسالة الواتساب
+  safari: string;
 };
 
 const MESSAGES: Record<Lang, Messages> = {
@@ -22,6 +24,7 @@ const MESSAGES: Record<Lang, Messages> = {
     ticketProgram: "البرنامج ده بتذاكر بسعر ثابت للفرد — مش محتاج حاسبة",
     peopleInvalid: "عدد الأفراد يجب أن يكون رقمًا صحيحًا موجبًا",
     minPeople: (n: number) => `الحد الأدنى للحجز ${n} فرد`,
+    safari: "سفاري بعربيات دفع رباعي",
   },
   en: {
     invalidRequest: "Invalid request data",
@@ -30,6 +33,7 @@ const MESSAGES: Record<Lang, Messages> = {
     ticketProgram: "This program is sold as tickets at a fixed price per person",
     peopleInvalid: "Number of people must be a positive whole number",
     minPeople: (n: number) => `Minimum booking is ${n} people`,
+    safari: "4x4 desert safari",
   },
 };
 
@@ -47,11 +51,12 @@ export async function POST(request: Request) {
     );
   }
 
-  const { programId, people, addons, includeTransport, lang: rawLang } = (body ?? {}) as {
+  const { programId, people, addons, includeTransport, includeSafari, lang: rawLang } = (body ?? {}) as {
     programId?: unknown;
     people?: unknown;
     addons?: unknown;
     includeTransport?: unknown;
+    includeSafari?: unknown;
     lang?: unknown;
   };
 
@@ -90,6 +95,7 @@ export async function POST(request: Request) {
     people: peopleNumber,
     addons: addonIds,
     includeTransport: includeTransport === undefined ? true : Boolean(includeTransport),
+    includeSafari: includeSafari === true,
     minPeople: program.minPeople,
   });
 
@@ -103,7 +109,7 @@ export async function POST(request: Request) {
     ok: true,
     programName: lang === "en" ? program.nameEn : program.name,
     people: peopleNumber,
-    addonLabels: result.selectedAddons.map(label),
+    addonLabels: [...(result.safariChosen ? [t.safari] : []), ...result.selectedAddons.map(label)],
     includedLabels: result.includedAddons.map(label),
     pricePerPerson: result.pricePerPerson,
     total: result.total,

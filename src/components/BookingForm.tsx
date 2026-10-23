@@ -6,6 +6,7 @@ import type { PublicAddon } from "@/lib/program-addons";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
 import ResultCard, { type PriceResult } from "@/components/ResultCard";
+import AddonDetails from "@/components/AddonDetails";
 
 export default function BookingForm({
   programs,
@@ -27,11 +28,15 @@ export default function BookingForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PriceResult | null>(null);
+  // الإضافة اللي صفحة صورها وتفاصيلها مفتوحة
+  const [detailsId, setDetailsId] = useState<string | null>(null);
 
   const addons = programAddons[programId] ?? [];
   const includedAddons = addons.filter((a) => a.included);
   const optionalAddons = addons.filter((a) => !a.included);
   const addonName = (a: PublicAddon) => (lang === "en" ? a.nameEn || a.name : a.name);
+  const hasDetails = (a: PublicAddon) => Boolean(a.images.length || (lang === "en" ? a.descriptionEn || a.description : a.description));
+  const shown = addons.find((a) => a.id === detailsId) ?? null;
 
   function toggleAddon(key: string) {
     setSelectedAddons((prev) =>
@@ -158,6 +163,15 @@ export default function BookingForm({
                       <path d="M8 13.2 4.8 10l-1.1 1.1L8 15.4l8.3-8.3-1.1-1.1z" />
                     </svg>
                     {addonName(addon)}
+                    {hasDetails(addon) && (
+                      <button
+                        type="button"
+                        onClick={() => setDetailsId(addon.id)}
+                        className="ms-1 text-xs font-bold underline underline-offset-2"
+                      >
+                        {t.addonDetails}
+                      </button>
+                    )}
                   </span>
                 ))}
               </div>
@@ -169,18 +183,29 @@ export default function BookingForm({
               <span className="mb-2 block text-sm font-bold text-neutral-800">{t.addonsLabel}</span>
               <div className="flex flex-col gap-2">
                 {optionalAddons.map((addon) => (
-                  <label
+                  <div
                     key={addon.id}
-                    className="flex cursor-pointer items-center gap-3 rounded-xl border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-700 hover:border-brand-orange/50"
+                    className="flex items-center gap-2 rounded-xl border border-neutral-200 pe-2 text-sm font-medium text-neutral-700 hover:border-brand-orange/50"
                   >
-                    <input
-                      type="checkbox"
-                      checked={selectedAddons.includes(addon.id)}
-                      onChange={() => toggleAddon(addon.id)}
-                      className="h-4 w-4 accent-brand-orange"
-                    />
-                    {addonName(addon)}
-                  </label>
+                    <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedAddons.includes(addon.id)}
+                        onChange={() => toggleAddon(addon.id)}
+                        className="h-4 w-4 accent-brand-orange"
+                      />
+                      {addonName(addon)}
+                    </label>
+                    {hasDetails(addon) && (
+                      <button
+                        type="button"
+                        onClick={() => setDetailsId(addon.id)}
+                        className="shrink-0 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-bold text-neutral-600 transition hover:border-brand-blue hover:text-brand-blue"
+                      >
+                        {t.addonDetails}
+                      </button>
+                    )}
+                  </div>
                 ))}
               </div>
             </>
@@ -206,6 +231,26 @@ export default function BookingForm({
         <div className="mt-8">
           <ResultCard result={result} />
         </div>
+      )}
+
+      {shown && (
+        <AddonDetails
+          addon={shown}
+          isEn={lang === "en"}
+          selected={selectedAddons.includes(shown.id)}
+          onAdd={() => {
+            if (!selectedAddons.includes(shown.id)) toggleAddon(shown.id);
+            setDetailsId(null);
+          }}
+          onClose={() => setDetailsId(null)}
+          labels={{
+            close: t.addonClose,
+            add: t.addonAdd,
+            added: t.addonAdded,
+            included: t.addonIncluded,
+            photo: t.addonPhoto,
+          }}
+        />
       )}
     </div>
   );

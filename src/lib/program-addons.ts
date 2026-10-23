@@ -25,7 +25,24 @@ export type PublicAddon = {
   name: string;
   nameEn: string;
   included: boolean;
+  // صفحة «الصور والتفاصيل» في البرنامج (من غير سعر)
+  description: string;
+  descriptionEn: string;
+  images: string[];
 };
+
+// صور الإضافة: الصورة الأساسية الأول، من غير تكرار
+const addonImages = (o: CustomTripOption) => [...new Set([o.image, ...(o.images ?? [])].filter(Boolean))];
+
+const toPublic = (o: CustomTripOption, included: boolean): PublicAddon => ({
+  id: o.id,
+  name: o.name,
+  nameEn: o.nameEn,
+  included,
+  description: o.description ?? "",
+  descriptionEn: o.descriptionEn ?? "",
+  images: addonImages(o),
+});
 
 type StoredMode = Exclude<AddonMode, "available">;
 
@@ -112,10 +129,7 @@ export async function listPublicProgramAddons(
   const map: Record<string, PublicAddon[]> = {};
   for (const programId of programIds) {
     const { included, available } = resolveProgramAddons(catalogue, modes[programId]);
-    map[programId] = [
-      ...included.map((o) => ({ id: o.id, name: o.name, nameEn: o.nameEn, included: true })),
-      ...available.map((o) => ({ id: o.id, name: o.name, nameEn: o.nameEn, included: false })),
-    ];
+    map[programId] = [...included.map((o) => toPublic(o, true)), ...available.map((o) => toPublic(o, false))];
   }
   return map;
 }

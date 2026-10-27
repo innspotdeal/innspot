@@ -1,6 +1,6 @@
 "use client";
 
-import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { buildWhatsAppLink, useWhatsAppNumber } from "@/lib/whatsapp";
 import { useLanguage } from "@/lib/language-context";
 
 type WhatsAppButtonProps = {
@@ -12,10 +12,12 @@ type WhatsAppButtonProps = {
 // زر واتساب موحّد يُستخدم في كل أنحاء الموقع (كروت الإقامة، كارت النتيجة، إلخ)
 export default function WhatsAppButton({ message, label, className = "" }: WhatsAppButtonProps) {
   const { lang } = useLanguage();
+  // رحلات الشركات وأفراد وإقامة ليهم أرقامهم — الرقم بيتحدد من الصفحة
+  const phone = useWhatsAppNumber();
   const resolvedLabel = label ?? (lang === "en" ? "Contact us / Book" : "تواصل معنا / احجز");
   return (
     <a
-      href={buildWhatsAppLink(message)}
+      href={buildWhatsAppLink(message, phone)}
       target="_blank"
       rel="noopener noreferrer"
       className={`inline-flex items-center justify-center gap-2 rounded-full bg-brand-orange px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-orange-dark ${className}`}

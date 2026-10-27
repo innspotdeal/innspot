@@ -5,7 +5,7 @@ import Link from "next/link";
 import { siteConfig, navLinks } from "@/data/site";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
-import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { buildWhatsAppLink, useWhatsAppNumber } from "@/lib/whatsapp";
 
 // رمز سوشيال على طريقة أيقونات الهوية: رمز أزرق فوق مربع برتقالي مايل
 function BrandGlyph({ icon }: { icon: string }) {
@@ -22,11 +22,13 @@ export default function Footer() {
   const t = translations[lang];
   const name = lang === "en" ? siteConfig.nameEn : siteConfig.name;
   const tagline = lang === "en" ? siteConfig.taglineEn : siteConfig.tagline;
+  // أيقونة الواتساب بتروح لرقم الصفحة (رحلات الشركات وأفراد وإقامة ليهم أرقامهم)
+  const whatsappNumber = useWhatsAppNumber();
 
   // إنستجرام وفيسبوك من أيقونات الهوية المرسومة، والباقي بنفس شكلها.
   // أي حساب لينكه فاضي في data/site.ts مش بيظهر
   const socials = [
-    { href: buildWhatsAppLink(t.inquiry(name)), label: t.footer.whatsapp, icon: <BrandGlyph icon="fi-brands-whatsapp" /> },
+    { href: buildWhatsAppLink(t.inquiry(name), whatsappNumber), label: t.footer.whatsapp, icon: <BrandGlyph icon="fi-brands-whatsapp" /> },
     {
       href: siteConfig.social.facebook,
       label: t.footer.facebook,

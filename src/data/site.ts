@@ -22,6 +22,9 @@ export const siteConfig = {
   // رقم واتساب أفراد وإقامة: كل زراير الواتساب في /accommodation (الفلل والفنادق والأنشطة) بتروحله
   accommodationWhatsappNumber: "201035751156",
 
+  // رقم بكسل ميتا (Dataset ID من Events Manager). فاضي = البكسل مش شغال
+  metaPixelId: "1802977127420364",
+
   // بيانات التواصل التي تظهر في الفوتر
   contact: {
     phone: "+20 106 184 0111",

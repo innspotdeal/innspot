@@ -2,6 +2,7 @@
 
 import { buildWhatsAppLink, useWhatsAppNumber } from "@/lib/whatsapp";
 import { useLanguage } from "@/lib/language-context";
+import { trackWhatsAppClick } from "@/lib/meta-pixel";
 
 type WhatsAppButtonProps = {
   message: string;
@@ -20,6 +21,7 @@ export default function WhatsAppButton({ message, label, className = "" }: Whats
       href={buildWhatsAppLink(message, phone)}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={trackWhatsAppClick}
       className={`inline-flex items-center justify-center gap-2 rounded-full bg-brand-orange px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-orange-dark ${className}`}
     >
       <svg

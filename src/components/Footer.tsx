@@ -6,6 +6,7 @@ import { siteConfig, navLinks } from "@/data/site";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
 import { buildWhatsAppLink, useWhatsAppNumber } from "@/lib/whatsapp";
+import { trackWhatsAppClick } from "@/lib/meta-pixel";
 
 // رمز سوشيال على طريقة أيقونات الهوية: رمز أزرق فوق مربع برتقالي مايل
 function BrandGlyph({ icon }: { icon: string }) {
@@ -28,7 +29,12 @@ export default function Footer() {
   // إنستجرام وفيسبوك من أيقونات الهوية المرسومة، والباقي بنفس شكلها.
   // أي حساب لينكه فاضي في data/site.ts مش بيظهر
   const socials = [
-    { href: buildWhatsAppLink(t.inquiry(name), whatsappNumber), label: t.footer.whatsapp, icon: <BrandGlyph icon="fi-brands-whatsapp" /> },
+    {
+      href: buildWhatsAppLink(t.inquiry(name), whatsappNumber),
+      label: t.footer.whatsapp,
+      icon: <BrandGlyph icon="fi-brands-whatsapp" />,
+      onClick: trackWhatsAppClick,
+    },
     {
       href: siteConfig.social.facebook,
       label: t.footer.facebook,
@@ -72,6 +78,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={social.label}
+                onClick={"onClick" in social ? social.onClick : undefined}
                 className="flex size-11 items-center justify-center rounded-xl bg-brand-cream transition hover:-translate-y-0.5"
               >
                 {social.icon}

@@ -12,6 +12,7 @@ import { navLinks } from "@/data/site";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
 import { buildWhatsAppLink, useWhatsAppNumber } from "@/lib/whatsapp";
+import { trackWhatsAppClick } from "@/lib/meta-pixel";
 
 const PILL_EASE =
   "ease-[linear(0,0.029_0.8%,0.13_1.8%,0.908_7.2%,1.051_9.1%,1.112_11.2%,1.116_12.2%,1.106_13.4%,1.007_19.5%,0.987_23.1%,1.001_35%,1)]";
@@ -144,6 +145,7 @@ export default function CorporateTripsListView({
                 href={buildWhatsAppLink(hero.ctaMessage, whatsappNumber)}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={trackWhatsAppClick}
                 className={`relative flex items-center gap-2 overflow-hidden rounded-full bg-brand-orange-light py-1.5 pl-1.5 pr-4 whitespace-nowrap text-[#090909] after:absolute after:left-1.5 after:top-1/2 after:h-9 after:w-9 after:-translate-y-1/2 after:rounded-full after:bg-white after:transition-[width] after:duration-1600 ${PILL_EASE} after:content-[''] hover:after:left-0 hover:after:h-full hover:after:w-full`}
               >
                 <div className="relative z-10 rounded-full p-1.5">

@@ -3,6 +3,7 @@ import { Cairo } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import MetaPixel from "@/components/MetaPixel";
 import { siteConfig } from "@/data/site";
 import { LanguageProvider } from "@/lib/language-context";
 
@@ -73,6 +74,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
         </LanguageProvider>
+        <MetaPixel />
       </body>
     </html>
   );

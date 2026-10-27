@@ -63,7 +63,7 @@ export const aboutContent = {
         },
         {
           title: "مرتّبة من أولها لآخرها",
-          text: "حجزك، ومواعيدك، وأكلك، ومواصلاتك، ومكان نومك، كله عند جهة واحدة تسألها. لو حصل أي حاجة، عارف مين تكلّم.",
+          text: "حجزك، ومواعيدك، وأكلك، ومواصلاتك، ومكان نومك، كله عند جهة واحدة تسألها وشايلة المسؤولية معاك. لو حصل أي حاجة، عارف مين تكلّم.",
         },
         {
           title: "بمعيار صاحب",
@@ -165,7 +165,7 @@ export const aboutContent = {
         },
         {
           title: "Arranged from start to finish",
-          text: "Your booking, your schedule, your food, your transport and where you sleep, all with one team you can ask. If anything happens, you know who to call.",
+          text: "Your booking, your schedule, your food, your transport and where you sleep, all with one team you can ask, who carries the responsibility with you. If anything happens, you know who to call.",
         },
         {
           title: "A friend's standard",

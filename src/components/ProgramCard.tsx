@@ -7,15 +7,18 @@ import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
 import type { CorporateProgram } from "@/data/programs";
 
-// كارت برنامج واحد — accent لون من ألوان الهوية غامق كفاية إن الكلام الأبيض يتقري عليه
+// كارت برنامج واحد — accent لون من ألوان الهوية غامق كفاية إن الكلام الأبيض يتقري عليه.
+// hidePrice: صفحة رحلات الشركات بتركّز على الجودة، فالكارت هناك من غير سعر
 export default function ProgramCard({
   program,
   startingPrice,
   accent,
+  hidePrice = false,
 }: {
   program: CorporateProgram;
   startingPrice?: number;
   accent: string;
+  hidePrice?: boolean;
 }) {
   const { lang } = useLanguage();
   const t = translations[lang].programCard;
@@ -33,7 +36,7 @@ export default function ProgramCard({
   const stats = [
     { value: program.itinerary.length || t.statCustom, label: t.statStops },
     { value: program.isTicket || program.isBuilder ? 1 : program.minPeople, label: t.statMinPeople },
-    price,
+    ...(hidePrice ? [] : [price]),
   ];
 
   return (
@@ -68,7 +71,7 @@ export default function ProgramCard({
       </div>
 
       <div
-        className="grid grid-cols-3 text-white [&>*+*]:border-s [&>*+*]:border-black/15"
+        className={`grid ${hidePrice ? "grid-cols-2" : "grid-cols-3"} text-white [&>*+*]:border-s [&>*+*]:border-black/15`}
         style={{ background: accent }}
       >
         {stats.map((stat, i) => (

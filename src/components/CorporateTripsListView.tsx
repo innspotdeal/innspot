@@ -6,10 +6,12 @@ import { useState } from "react";
 import ArrowIcon from "@/components/ArrowIcon";
 import TripsGuide from "@/components/TripsGuide";
 import { clients } from "@/data/clients";
+import { tripsGuide } from "@/data/trips-guide";
 import type { CorporateProgram } from "@/data/programs";
 import { navLinks } from "@/data/site";
 import { translations } from "@/data/translations";
 import { useLanguage } from "@/lib/language-context";
+import { buildWhatsAppLink, useWhatsAppNumber } from "@/lib/whatsapp";
 
 const PILL_EASE =
   "ease-[linear(0,0.029_0.8%,0.13_1.8%,0.908_7.2%,1.051_9.1%,1.112_11.2%,1.116_12.2%,1.106_13.4%,1.007_19.5%,0.987_23.1%,1.001_35%,1)]";
@@ -17,15 +19,16 @@ const PILL_EASE =
 export default function CorporateTripsListView({
   fixedPrograms,
   customProgram,
-  startingPrices,
 }: {
   fixedPrograms: CorporateProgram[];
   customProgram: CorporateProgram | null;
-  startingPrices: Record<string, number>;
 }) {
   const { lang, toggleLang } = useLanguage();
   const t = translations[lang];
   const tp = t.corporateTripsPage;
+  // زرار الجزء اللي فوق بيكلمنا على واتساب — الصفحة كلها بتوصّل للخطوة دي
+  const hero = tripsGuide[lang].hero;
+  const whatsappNumber = useWhatsAppNumber();
   const [menuOpen, setMenuOpen] = useState(false);
   const textDir = lang === "en" ? "ltr" : "rtl";
 
@@ -138,13 +141,17 @@ export default function CorporateTripsListView({
           <div className="relative z-5 flex items-stretch justify-between after:absolute after:-top-1/2 after:left-0 after:-z-5 after:hidden after:h-20 after:w-24 after:bg-brand-blue after:content-[''] sm:after:block">
             <div className="relative rounded-bl-4xl rounded-tr-4xl pb-3 pl-3 after:absolute after:bottom-0 after:-right-1/2 after:-z-5 after:hidden after:h-1/2 after:w-full after:bg-brand-blue after:content-[''] sm:bg-brand-blue sm:p-6 sm:after:block">
               <a
-                href="#programs"
+                href={buildWhatsAppLink(hero.ctaMessage, whatsappNumber)}
+                target="_blank"
+                rel="noopener noreferrer"
                 className={`relative flex items-center gap-2 overflow-hidden rounded-full bg-brand-orange-light py-1.5 pl-1.5 pr-4 whitespace-nowrap text-[#090909] after:absolute after:left-1.5 after:top-1/2 after:h-9 after:w-9 after:-translate-y-1/2 after:rounded-full after:bg-white after:transition-[width] after:duration-1600 ${PILL_EASE} after:content-[''] hover:after:left-0 hover:after:h-full hover:after:w-full`}
               >
                 <div className="relative z-10 rounded-full p-1.5">
                   <ArrowIcon direction="next" followText={false} className="h-5 w-auto" />
                 </div>
-                <span className="relative z-10">{tp.exploreCta}</span>
+                <span dir={textDir} className="relative z-10">
+                  {hero.cta}
+                </span>
               </a>
             </div>
             <div className="relative z-10 hidden flex-1 items-center justify-end rounded-b-4xl bg-brand-blue-light ps-6 pe-3 sm:flex">
@@ -154,7 +161,7 @@ export default function CorporateTripsListView({
         </div>
       </header>
 
-      <TripsGuide fixedPrograms={fixedPrograms} customProgram={customProgram} startingPrices={startingPrices} />
+      <TripsGuide fixedPrograms={fixedPrograms} customProgram={customProgram} />
     </div>
   );
 }

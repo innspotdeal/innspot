@@ -54,8 +54,7 @@ export const translations = {
     inquiry: (name: string) => `مرحبًا، أرغب في الاستفسار عن ${name}`,
     corporateTripsPage: {
       title: "رحلات شركات",
-      subtitle: "برامج رحلات جماعية متكاملة، مصممة لتناسب فرق العمل والفعاليات الجماعية",
-      exploreCta: "استكشف البرامج",
+      subtitle: "رحلة الشركة بتتحسب على اللي نظّمها، وإحنا بنشيلها معاك. بنهتم بالتفاصيل اللي مش بتتكتب، عشان فريقك يرجع مبسوط وإنت مرتاح.",
       trustedByHeading: "شركات وثقت بينا",
     },
     programCard: {
@@ -208,8 +207,7 @@ export const translations = {
     inquiry: (name: string) => `Hello, I'd like to ask about ${name}`,
     corporateTripsPage: {
       title: "Corporate Trips",
-      subtitle: "Complete group trip programs, designed to fit teams and group events",
-      exploreCta: "Explore Programs",
+      subtitle: "A company trip reflects on whoever organised it, and we carry it with you. We look after the details nobody writes down, so your team comes back happy and you can relax.",
       trustedByHeading: "Trusted by teams from",
     },
     programCard: {

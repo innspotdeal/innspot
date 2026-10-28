@@ -30,7 +30,7 @@ export type ProgramPricing = {
   needsBus: boolean;
   // البرنامج فيه جزء سفاري محتاج عربيات دفع رباعي؟ (جزء من الرحلة نفسها)
   needsSafari: boolean;
-  // السفاري اختيارية: العميل بيعلّم «عايز سفاري» زي الانتقالات، ولو معلّمش مش بتتحسب
+  // السفاري اختيارية: العميل بيعلّم «عايز سفاري»، ولو معلّمش مش بتتحسب
   safariOptional: boolean;
 };
 
@@ -282,8 +282,6 @@ export type CalculatePriceInput = {
   people: number;
   // معرّفات الإضافات اللي العميل اختارها — أي حاجة مش متاحة للبرنامج بتتجاهل
   addons: string[];
-  // الانتقالات اختيارية — العميل ممكن ييجي بمواصلاته
-  includeTransport?: boolean;
   // العميل علّم «عايز سفاري» — ليها لازمة بس في البرنامج اللي سفاريه اختيارية
   includeSafari?: boolean;
   // أقل عدد أفراد للبرنامج لو معروف — لو مش مبعوت بيتجاب من البرنامج نفسه
@@ -315,7 +313,6 @@ export async function calculatePrice({
   programId,
   people,
   addons,
-  includeTransport = true,
   includeSafari = false,
   minPeople,
 }: CalculatePriceInput): Promise<CalculatePriceResult> {
@@ -352,15 +349,15 @@ export async function calculatePrice({
   // باص يوصّلهم الفيوم، وعربيات دفع رباعي للصحراء
   let carsCost = 0;
 
-  // الباص بس هو اللي العميل يقدر يشيله (لو جاي بمواصلاته)
-  if (pricing.needsBus && includeTransport) {
+  // الباص مش اختيار للعميل (المالك، 2026-10-29): بيتحسب لو البرنامج «محتاج باص» وبس
+  if (pricing.needsBus) {
     const busVehicles = await listVehicles("bus");
     carsCost += busVehicles.length
       ? allocateFleet(people, busVehicles).total
       : Math.ceil(people / settings.peoplePerCar) * pricing.carPrice;
   }
 
-  // عربيات السفاري: جزء من الرحلة نفسها، أو اختيارية يعلّم عليها العميل زي الانتقالات
+  // عربيات السفاري: جزء من الرحلة نفسها، أو اختيارية يعلّم عليها العميل
   const safariChosen = pricing.needsSafari && pricing.safariOptional && includeSafari;
   if (pricing.needsSafari && (!pricing.safariOptional || includeSafari)) {
     const safariVehicles = await listVehicles("safari");

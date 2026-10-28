@@ -51,11 +51,10 @@ export async function POST(request: Request) {
     );
   }
 
-  const { programId, people, addons, includeTransport, includeSafari, lang: rawLang } = (body ?? {}) as {
+  const { programId, people, addons, includeSafari, lang: rawLang } = (body ?? {}) as {
     programId?: unknown;
     people?: unknown;
     addons?: unknown;
-    includeTransport?: unknown;
     includeSafari?: unknown;
     lang?: unknown;
   };
@@ -94,7 +93,6 @@ export async function POST(request: Request) {
     programId,
     people: peopleNumber,
     addons: addonIds,
-    includeTransport: includeTransport === undefined ? true : Boolean(includeTransport),
     includeSafari: includeSafari === true,
     minPeople: program.minPeople,
   });

@@ -23,7 +23,7 @@ export default function BookingForm({
   programs: CorporateProgram[];
   // لكل برنامج: الإضافات المشمولة والمتاحة للاختيار (من غير أسعار)
   programAddons: Record<string, PublicAddon[]>;
-  // لكل برنامج فيه سفاري: مشمولة، أو اختيارية يعلّم عليها العميل زي الانتقالات
+  // لكل برنامج فيه سفاري: مشمولة، أو اختيارية يعلّم عليها العميل
   safariModes: Record<string, SafariMode>;
   safariInfo: SafariInfo;
   initialProgramId?: string;
@@ -34,7 +34,6 @@ export default function BookingForm({
   const [programId, setProgramId] = useState(initialProgramId);
   const [people, setPeople] = useState("");
   const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
-  const [includeTransport, setIncludeTransport] = useState(true);
   const [includeSafari, setIncludeSafari] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -89,7 +88,6 @@ export default function BookingForm({
           programId,
           people: peopleNumber,
           addons: selectedAddons,
-          includeTransport,
           includeSafari: safariMode === "optional" && includeSafari,
           lang,
         }),
@@ -161,20 +159,11 @@ export default function BookingForm({
         </div>
 
         <div>
-          <span className="mb-2 block text-sm font-bold text-neutral-800">{t.transportLabel}</span>
-          <div className="mb-5 flex flex-col gap-2">
-            <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-neutral-300 px-4 py-3 text-sm">
-              <input
-                type="checkbox"
-                checked={includeTransport}
-                onChange={(e) => setIncludeTransport(e.target.checked)}
-                className="size-4 accent-brand-orange"
-              />
-              <span className="font-medium text-neutral-700">{t.transportInclude}</span>
-            </label>
-
-            {/* السفاري الاختيارية: علامة زي الانتقالات، وبتتحسب بعدد العربيات */}
-            {safariMode === "optional" && (
+          {/* السفاري هي الاختيار الوحيد (المالك، 2026-10-29): الباص مش اختيار للعميل،
+              بيتحسب لوحده لو البرنامج «محتاج باص». الاختيارية بتتحسب بعدد العربيات */}
+          {safariMode === "optional" && (
+            <div className="mb-5">
+              <span className="mb-2 block text-sm font-bold text-neutral-800">{t.safariLabel}</span>
               <div className="rounded-xl border border-neutral-300 text-sm">
                 <label className="flex cursor-pointer items-center gap-3 px-4 py-3">
                   <input
@@ -196,8 +185,8 @@ export default function BookingForm({
                   </button>
                 )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {(includedAddons.length > 0 || safariMode === "included") && (
             <div className="mb-5">

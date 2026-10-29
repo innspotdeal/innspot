@@ -37,6 +37,8 @@ function parseActivityInput(
       description: typeof b.description === "string" ? b.description.trim() : "",
       descriptionEn: typeof b.descriptionEn === "string" ? b.descriptionEn.trim() : "",
       image: typeof b.image === "string" ? b.image.trim() : "",
+      // صورة واحدة من غير قايمة = هي الغلاف ولوحدها
+      images: typeof b.image === "string" && b.image.trim() ? [b.image.trim()] : [],
       price: 0,
       duration: "",
       durationEn: "",

@@ -23,7 +23,8 @@ async function main() {
       ADD COLUMN IF NOT EXISTS duration TEXT NOT NULL DEFAULT '',
       ADD COLUMN IF NOT EXISTS duration_en TEXT NOT NULL DEFAULT '',
       ADD COLUMN IF NOT EXISTS includes TEXT[] NOT NULL DEFAULT '{}',
-      ADD COLUMN IF NOT EXISTS includes_en TEXT[] NOT NULL DEFAULT '{}';
+      ADD COLUMN IF NOT EXISTS includes_en TEXT[] NOT NULL DEFAULT '{}',
+      ADD COLUMN IF NOT EXISTS images TEXT[] NOT NULL DEFAULT '{}';
   `);
   console.log("تم — أعمدة price و duration و includes للأنشطة جاهزة");
   await pool.end();

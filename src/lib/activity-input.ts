@@ -2,8 +2,11 @@ import type { Activity } from "@/data/activities";
 import { toList } from "@/lib/program-input";
 
 export type ActivityDetails = Partial<
-  Pick<Activity, "price" | "duration" | "durationEn" | "includes" | "includesEn">
+  Pick<Activity, "image" | "images" | "price" | "duration" | "durationEn" | "includes" | "includesEn">
 >;
+
+// حد معقول عشان صفحة النشاط متتقلش (زي صور الغرف)
+const MAX_ACTIVITY_IMAGES = 12;
 
 // سعر النشاط ومدته و"يشمل النشاط" — جايين من الـ ERP
 // اللي مش مبعوت بيفضل undefined، عشان الـ PATCH الجزئي ما يمسحوش
@@ -24,6 +27,19 @@ export function parseActivityDetails(
   if (typeof b.durationEn === "string") data.durationEn = b.durationEn.trim();
   if (b.includes !== undefined) data.includes = toList(b.includes);
   if (b.includesEn !== undefined) data.includesEn = toList(b.includesEn);
+
+  // صور النشاط: الأولى هي الغلاف اللي الكروت بتعرضه (image)
+  if (b.images !== undefined) {
+    if (!Array.isArray(b.images)) return { ok: false, error: "صور النشاط لازم تكون قايمة" };
+    const images = b.images
+      .filter((v): v is string => typeof v === "string" && v.trim() !== "")
+      .map((v) => v.trim());
+    if (images.length > MAX_ACTIVITY_IMAGES) {
+      return { ok: false, error: `أقصى عدد صور للنشاط ${MAX_ACTIVITY_IMAGES}` };
+    }
+    data.images = images;
+    data.image = images[0] ?? "";
+  }
 
   return { ok: true, data };
 }

@@ -12,6 +12,8 @@ export type Activity = {
   description: string;
   descriptionEn: string;
   image: string;
+  // صور النشاط (المالك، 2026-10-29) — الأولى هي الغلاف، وهي نفسها image
+  images: string[];
   // سعر النشاط للفرد بالجنيه — 0 = مش بيظهر سعر، زرار الاستفسار بس
   price: number;
   duration: string;
@@ -21,7 +23,7 @@ export type Activity = {
   includesEn: string[];
 };
 
-const noDetails = { price: 0, duration: "", durationEn: "", includes: [], includesEn: [] };
+const noDetails = { images: [], price: 0, duration: "", durationEn: "", includes: [], includesEn: [] };
 
 export const activities: Activity[] = [
   {

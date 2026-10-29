@@ -33,9 +33,9 @@ export default function ActivityDetailView({ item }: { item: Activity }) {
 
   return (
     <div className="mx-auto max-w-4xl pt-4 sm:pt-6">
-      {item.image ? (
+      {item.images.length > 0 || item.image ? (
         <div className="sticky top-0 z-0 h-[55vh] sm:h-[60vh] sm:overflow-hidden sm:rounded-3xl">
-          <ImageGallery images={[item.image]} alt={name} aspectClassName="h-full" />
+          <ImageGallery images={item.images.length > 0 ? item.images : [item.image]} alt={name} aspectClassName="h-full" />
           {backButton}
         </div>
       ) : (

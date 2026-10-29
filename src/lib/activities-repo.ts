@@ -9,6 +9,8 @@ type ActivityRow = {
   description: string;
   description_en: string;
   image: string;
+  // صور النشاط (المالك، 2026-10-29) — مش موجود في الصفوف القديمة لحد أول حفظ
+  images?: string[] | null;
   // NUMERIC بيرجع من pg كنص
   price: string | null;
   duration: string | null;
@@ -25,6 +27,8 @@ function rowToActivity(row: ActivityRow): Activity {
     description: row.description,
     descriptionEn: row.description_en,
     image: row.image,
+    // نشاط قبل الصور: صورته الوحيدة هي الصور
+    images: row.images?.length ? row.images : row.image ? [row.image] : [],
     price: Number(row.price ?? 0),
     duration: row.duration ?? "",
     durationEn: row.duration_en ?? "",
@@ -50,7 +54,7 @@ export type ActivityInput = Activity;
 // أعمدة السعر والتفاصيل (نفس scripts/activity-details-migration.mjs): لو الـ migration
 // متشغّلش على قاعدة البيانات، أول حفظ من الأدمن أو الـ ERP بيضيفها هو.
 // القراية مش محتاجاها (rowToActivity بيحط صفر/فاضي)، فبنتأكد قبل الكتابة بس — ومرة واحدة لكل سيرفر
-const DETAIL_COLUMNS = ["price", "duration", "duration_en", "includes", "includes_en"];
+const DETAIL_COLUMNS = ["price", "duration", "duration_en", "includes", "includes_en", "images"];
 let detailColumnsReady: Promise<void> | null = null;
 
 function ensureDetailColumns(): Promise<void> {
@@ -67,7 +71,8 @@ function ensureDetailColumns(): Promise<void> {
         ADD COLUMN IF NOT EXISTS duration TEXT NOT NULL DEFAULT '',
         ADD COLUMN IF NOT EXISTS duration_en TEXT NOT NULL DEFAULT '',
         ADD COLUMN IF NOT EXISTS includes TEXT[] NOT NULL DEFAULT '{}',
-        ADD COLUMN IF NOT EXISTS includes_en TEXT[] NOT NULL DEFAULT '{}'
+        ADD COLUMN IF NOT EXISTS includes_en TEXT[] NOT NULL DEFAULT '{}',
+        ADD COLUMN IF NOT EXISTS images TEXT[] NOT NULL DEFAULT '{}'
     `);
   })().catch((err) => {
     // نجرب تاني مع الحفظ الجاي بدل ما نفضل شايلين الفشل
@@ -81,8 +86,8 @@ export async function createActivity(input: ActivityInput): Promise<Activity> {
   await ensureDetailColumns();
   const result = await pool.query<ActivityRow>(
     `INSERT INTO activities
-      (id, name, name_en, description, description_en, image, price, duration, duration_en, includes, includes_en, sort_order)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,
+      (id, name, name_en, description, description_en, image, images, price, duration, duration_en, includes, includes_en, sort_order)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,
        (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM activities))
      RETURNING *`,
     [
@@ -92,6 +97,7 @@ export async function createActivity(input: ActivityInput): Promise<Activity> {
       input.description,
       input.descriptionEn,
       input.image,
+      input.images,
       input.price,
       input.duration,
       input.durationEn,
@@ -115,6 +121,7 @@ export async function updateActivity(
     description: "description",
     descriptionEn: "description_en",
     image: "image",
+    images: "images",
     price: "price",
     duration: "duration",
     durationEn: "duration_en",

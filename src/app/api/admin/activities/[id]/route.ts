@@ -15,7 +15,8 @@ function parseUpdateInput(
   if (typeof b.nameEn === "string") update.nameEn = b.nameEn.trim();
   if (typeof b.description === "string") update.description = b.description.trim();
   if (typeof b.descriptionEn === "string") update.descriptionEn = b.descriptionEn.trim();
-  if (typeof b.image === "string") update.image = b.image.trim();
+  // لو الصور مبعوتة، الغلاف أول صورة فيها
+  if (typeof b.image === "string" && update.images === undefined) update.image = b.image.trim();
 
   if (update.name === "" || update.nameEn === "") {
     return { ok: false, error: "اسم النشاط (عربي وإنجليزي) مطلوب" };

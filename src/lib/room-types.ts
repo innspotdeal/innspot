@@ -32,6 +32,7 @@ export function readRoomTypes(value: unknown): RoomType[] {
       descriptionEn: text(r.descriptionEn),
       capacity: Math.max(1, Math.round(number(r.capacity)) || 1),
       price: Math.max(0, number(r.price)),
+      ...(r.priceWeekend === undefined ? {} : { priceWeekend: Math.max(0, number(r.priceWeekend)) }),
       images: urls(r.images),
     }))
     .filter((r) => r.name);
@@ -62,6 +63,13 @@ export function parseRoomTypes(
       return { ok: false, error: `${label} (${name}): السعر لازم يكون رقم مش سالب` };
     }
 
+    // فاضي = نفس السعر كل الأيام
+    const priceWeekend =
+      r.priceWeekend === undefined || r.priceWeekend === null || r.priceWeekend === "" ? 0 : Number(r.priceWeekend);
+    if (!Number.isFinite(priceWeekend) || priceWeekend < 0) {
+      return { ok: false, error: `${label} (${name}): سعر الويك إند لازم يكون رقم مش سالب` };
+    }
+
     const images = urls(r.images);
     if (images.length > MAX_ROOM_IMAGES) {
       return { ok: false, error: `${label} (${name}): أقصى عدد صور ${MAX_ROOM_IMAGES}` };
@@ -74,6 +82,7 @@ export function parseRoomTypes(
       descriptionEn: text(r.descriptionEn),
       capacity,
       price,
+      priceWeekend,
       images,
     });
   }

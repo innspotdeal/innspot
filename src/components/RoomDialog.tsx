@@ -82,6 +82,11 @@ export default function RoomDialog({
                   {t.accommodationCard.currency(room.price)}
                 </span>{" "}
                 <span className="text-xs text-neutral-500">{t.accommodationCard.perNight}</span>
+                {(room.priceWeekend ?? 0) > 0 && room.priceWeekend !== room.price && (
+                  <span className="block text-xs text-neutral-500">
+                    {t.accommodationCard.weekendPrice}: {t.accommodationCard.currency(room.priceWeekend ?? 0)}
+                  </span>
+                )}
               </p>
             )}
           </div>

@@ -62,6 +62,8 @@ export default function HotelDetailView({ item }: { item: Hotel }) {
               const roomName = lang === "en" ? roomType.nameEn || roomType.name : roomType.name;
               const roomDescription =
                 lang === "en" ? roomType.descriptionEn || roomType.description : roomType.description;
+              // سعر الويك إند بيبان تحت السعر لو مختلف عنه
+              const weekend = roomType.priceWeekend ?? 0;
               return (
                 <li key={`${roomType.name}-${index}`}>
                   <button
@@ -95,6 +97,11 @@ export default function HotelDetailView({ item }: { item: Hotel }) {
                               {t.accommodationCard.currency(roomType.price)}
                             </span>{" "}
                             <span className="text-xs text-neutral-500">{t.accommodationCard.perNight}</span>
+                            {weekend > 0 && weekend !== roomType.price && (
+                              <span className="block text-xs text-neutral-500">
+                                {t.accommodationCard.weekendPrice}: {t.accommodationCard.currency(weekend)}
+                              </span>
+                            )}
                           </p>
                         )}
                       </div>
